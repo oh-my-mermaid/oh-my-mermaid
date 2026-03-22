@@ -1,0 +1,1 @@
+The class-field dispatch is a catch-all `default` case in the switch: any unknown first arg is treated as a class name. This means typos in command names silently become class names. Intentional design — keeps the API simple.

@@ -1,0 +1,2 @@
+- `prev_diagram` only stores the immediately previous version — no full history; multiple rapid writes lose intermediate states
+- No locking: concurrent CLI writes to the same class could corrupt meta.yaml (unlikely in practice but possible if parallelized)

@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>oh-my-mermaid</title>
+<script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #000000;
+  --border: #333333;
+  --border-hi: #333;
+  --text: #ffffff;
+  --text-mid: #888;
+  --text-dim: #555;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', monospace;
+  --sidebar-w: 400px;
+}
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+
+/* Nav sidebar */
+#nav-sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 200px;
+  background: #000; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 200;
+}
+#nav-title {
+  padding: 14px 16px;
+  font-size: 13px; font-weight: 600; color: #fff;
+  font-family: var(--mono);
+}
+#nav-list {
+  flex: 1; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: #1a1a1a transparent;
+}
+.nav-item {
+  display: flex; align-items: center; width: 100%; height: 24px;
+  padding: 0 16px 0 0;
+  font-size: 11.5px; font-family: 'Geist Mono', 'JetBrains Mono', 'Fira Code', var(--mono);
+  color: #666; cursor: pointer;
+  border: none; background: none; text-align: left;
+  transition: color .12s, background .12s;
+  white-space: nowrap; overflow: hidden;
+}
+.nav-item.nav-root { color: #bbb; font-size: 12px; height: 28px; padding-left: 16px; margin-top: 2px; }
+.nav-pre { display: flex; align-self: stretch; align-items: stretch; flex-shrink: 0; padding-left: 16px; }
+.nav-slot { width: 12px; position: relative; flex-shrink: 0; }
+.nav-slot-line::before {
+  content: ''; position: absolute;
+  left: 6px; top: 0; bottom: 0; width: 1px; background: #222;
+}
+.nav-conn { width: 18px; position: relative; flex-shrink: 0; }
+.nav-conn::before {
+  content: ''; position: absolute;
+  left: 6px; top: 0; width: 1px; background: #2e2e2e;
+}
+.nav-conn:not(.nav-conn-last)::before { bottom: 0; }
+.nav-conn-last::before { bottom: 50%; }
+.nav-conn::after {
+  content: ''; position: absolute;
+  left: 6px; right: 0; top: 50%; height: 1px;
+  transform: translateY(-50%); background: #2e2e2e;
+}
+.nav-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.nav-item:hover { color: #fff; background: #0d0d0d; }
+.nav-item:hover .nav-slot-line::before,
+.nav-item:hover .nav-conn::before,
+.nav-item:hover .nav-conn::after { background: #555; }
+.nav-item.active { color: #fff; background: #141414; }
+.nav-item.active .nav-slot-line::before,
+.nav-item.active .nav-conn::before,
+.nav-item.active .nav-conn::after { background: #555; }
+
+/* Floating controls */
+.float-controls {
+  position: absolute; top: 12px; right: 12px;
+  display: flex; align-items: center; gap: 3px;
+  z-index: 100;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  backdrop-filter: blur(8px);
+}
+.hbtn { background: none; border: 1px solid var(--border-hi); color: var(--text-mid); height: 26px; min-width: 26px; padding: 0 8px; border-radius: 5px; cursor: pointer; font-size: 13px; font-family: var(--font); transition: border-color .12s, color .12s; }
+.hbtn:hover { border-color: #3a3a3a; color: var(--text); }
+#zoom-label { font-size: 11px; color: var(--text-dim); width: 38px; text-align: center; font-family: var(--mono); }
+
+#canvas-wrap {
+  flex: 1; position: relative; overflow: hidden; cursor: grab; margin-left: 200px;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+  background-size: 28px 28px;
+  user-select: none;
+}
+#canvas-wrap.panning { cursor: grabbing; }
+#canvas { position: absolute; transform-origin: 0 0; }
+#canvas svg { display: block; overflow: visible; }
+
+/* SVG interactive elements */
+.grp-node { cursor: pointer; }
+.grp-node .grp-border { transition: stroke .12s, filter .12s; }
+.grp-node:hover > .grp-border { stroke: #ffffff !important; stroke-width: 2.5px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.5)); }
+.grp-node.selected > .grp-border { stroke: #818cf8 !important; stroke-width: 2.5px; stroke-dasharray: none !important; filter: drop-shadow(0 0 8px rgba(129,140,248,0.6)); }
+.reg-node { cursor: pointer; }
+.reg-node .nshape { transition: stroke .12s, filter .12s; }
+.reg-node:hover .nshape { stroke: #ffffff !important; stroke-width: 2.5px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.5)); }
+/* Edge highlight on node hover */
+.edge-path.edge-hl { stroke: #ffffff !important; stroke-width: 2.5px; opacity: 1; transition: all .15s; }
+.reg-node.selected .nshape { stroke: #818cf8 !important; stroke-width: 2.5px; filter: drop-shadow(0 0 8px rgba(129,140,248,0.6)); }
+/* Overview mode: per-element fade — borders + edges stay visible */
+.grp-inner { transition: opacity .25s; }
+#canvas-wrap.zoom-overview .grp-inner { pointer-events: none; }
+#canvas-wrap.zoom-overview .grp-inner > .reg-node { opacity: 0.2; transition: opacity .25s; }
+#canvas-wrap.zoom-overview .grp-inner .edge-path { opacity: 0.4; transition: opacity .25s; }
+#canvas-wrap.zoom-overview .grp-inner .edge-label { opacity: 0; }
+#canvas-wrap.zoom-overview .grp-inner > .grp-node > .grp-inner { opacity: 0.06; }
+#canvas-wrap.zoom-overview .grp-inner > .grp-node > .grp-border { opacity: 0.60; }
+#canvas-wrap.zoom-overview .grp-inner > .grp-node > .grp-label-top { opacity: 0; }
+/* Top-level group labels */
+.grp-label-center { display: none; }
+#canvas-wrap.zoom-overview .grp-label-top { display: none; }
+#canvas-wrap.zoom-overview .grp-label-center { display: block; }
+/* Sub-group overlay labels (outside grp-inner — unaffected by opacity) */
+.grp-sub-labels { display: none; pointer-events: none; }
+.grp-sub-labels text { opacity: 0.45; }
+/* Depth-aware labels: expanded groups hide center, show top-left */
+.grp-node.grp-expanded > .grp-label-center { display: none; }
+/* Non-expanded: show center label over top label */
+.grp-node:not(.grp-expanded) > .grp-label-center { display: block; opacity: 0.7; }
+/* Top-level expanded: hide center */
+[data-cls].grp-expanded > .grp-label-center { display: none; }
+#canvas-wrap.zoom-overview .grp-sub-labels { display: block; }
+/* Focused group: restore full visibility */
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner { pointer-events: auto !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner > .reg-node { opacity: 1 !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner .edge-path { opacity: 1 !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner .edge-label { opacity: 1 !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner .grp-node .grp-inner { opacity: 1 !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner .grp-node .grp-border { opacity: 1 !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-inner .grp-node .grp-label-top { opacity: 1 !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt .grp-label-top { display: block !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt .grp-label-center { display: none !important; }
+#canvas-wrap.zoom-overview [data-cls].focus-exempt > .grp-sub-labels { display: none !important; }
+
+/* Sidebar */
+#sidebar {
+  position: fixed; top: 0; right: 0; bottom: 0; width: var(--sidebar-w);
+  background: #000; border-left: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+  z-index: 300; display: flex; flex-direction: column;
+}
+#sidebar.open { transform: translateX(0); }
+#sb-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+#sb-title { flex: 1; font-size: 14px; font-weight: 600; color: #fff; font-family: var(--mono); }
+#sb-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 22px; line-height: 1; padding: 0; }
+#sb-close:hover { color: #888; }
+#sb-body { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #1a1a1a transparent; }
+
+.sb-diagram { padding: 16px; border-bottom: 1px solid var(--border); background: #030303; }
+.sb-diagram svg { display: block; width: 100%; height: auto; overflow: visible; }
+.sb-fields { padding: 16px 20px; }
+.sb-sec { margin-bottom: 20px; }
+.sb-sec-title { font-size: 9px; text-transform: uppercase; letter-spacing: .14em; color: #888; padding-bottom: 7px; border-bottom: 1px solid #1e1e1e; margin-bottom: 9px; font-weight: 600; }
+.sb-sec-body { font-size: 12px; line-height: 1.72; color: #bbb; }
+.sb-sec-body p { margin-bottom: 6px; }
+.sb-sec-body ul, .sb-sec-body ol { padding-left: 16px; }
+.sb-sec-body li { margin-bottom: 3px; }
+.sb-sec-body code { background: #111; padding: 1px 5px; border-radius: 2px; font-size: 11px; color: #ccc; font-family: var(--mono); }
+.sb-sec-body strong { color: #eee; }
+.sb-concern .sb-sec-body { border-left: 2px solid #444; padding-left: 10px; }
+.sb-meta-text { font-size: 10px; color: #777; line-height: 1.9; font-family: var(--mono); }
+.sb-refs { display: flex; flex-direction: column; gap: 4px; }
+.sb-ref { font-size: 11px; color: #999; padding: 5px 10px; background: #090909; border: 1px solid #1e1e1e; border-radius: 4px; cursor: pointer; display: block; font-family: var(--mono); transition: border-color .12s, color .12s; }
+.sb-ref:hover { border-color: #333; color: #bbb; }
+.empty-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
+.empty-state p { font-size: 12px; color: #444; line-height: 1.9; }
+/* Light mode */
+body.light { --bg: #f0f0f0; --border: #ddd; --border-hi: #bbb; --text: #1a1a1a; --text-mid: #555; --text-dim: #aaa; }
+body.light header { background: #fff; }
+body.light #canvas-wrap { background-color: #f0f0f0; background-image: radial-gradient(circle, #ccc 1px, transparent 1px); }
+body.light #sidebar { background: #fafafa; }
+body.light #sb-body { scrollbar-color: #ddd transparent; }
+body.light .hbtn { border-color: #ccc; color: #666; }
+body.light .hbtn:hover { border-color: #aaa; color: #222; }
+body.light .sb-diagram { background: #f5f5f5; }
+body.light .sb-sec-title { color: #aaa; border-color: #ddd; }
+body.light .sb-sec-body { color: #555; }
+body.light .sb-sec-body code { background: #e5e5e5; color: #333; }
+body.light .sb-sec-body strong { color: #222; }
+body.light .sb-concern .sb-sec-body { border-color: #ccc; }
+body.light .sb-meta-text { color: #999; }
+body.light .sb-ref { background: #eee; border-color: #ddd; color: #555; }
+body.light .sb-ref:hover { border-color: #aaa; color: #111; }
+body.light .empty-state p { color: #bbb; }
+body.light #nav-sidebar { background: #fff; }
+body.light .nav-item { color: #999; }
+body.light .nav-item.nav-root { color: #333; }
+body.light .nav-slot-line::before { background: #ddd; }
+body.light .nav-conn::before, body.light .nav-conn::after { background: #ddd; }
+body.light .nav-item:hover { color: #000; background: #f5f5f5; }
+body.light .nav-item:hover .nav-slot-line::before,
+body.light .nav-item:hover .nav-conn::before,
+body.light .nav-item:hover .nav-conn::after { background: #bbb; }
+body.light .nav-item.active { color: #000; background: #ebebeb; }
+body.light .nav-item.active .nav-slot-line::before,
+body.light .nav-item.active .nav-conn::before,
+body.light .nav-item.active .nav-conn::after { background: #bbb; }
+body.light .float-controls { background: rgba(255,255,255,0.8); }
+body.light .grp-node:hover > .grp-border { stroke: #000 !important; filter: drop-shadow(0 0 6px rgba(0,0,0,0.3)); }
+body.light .grp-node.selected > .grp-border { stroke: #4f46e5 !important; filter: drop-shadow(0 0 8px rgba(79,70,229,0.4)); }
+body.light .reg-node:hover .nshape { stroke: #000 !important; filter: drop-shadow(0 0 6px rgba(0,0,0,0.3)); }
+body.light .reg-node.selected .nshape { stroke: #4f46e5 !important; filter: drop-shadow(0 0 8px rgba(79,70,229,0.4)); }
+body.light .reg-node:hover .nshape { stroke: #000 !important; }
+</style>
+</head>
+<body>
+<div id="nav-sidebar">
+  <div id="nav-title">omm</div>
+  <div id="nav-list"></div>
+</div>
+
+<div id="canvas-wrap">
+  <div class="float-controls">
+    <button class="hbtn" onclick="zoomOut()">−</button>
+    <span id="zoom-label">70%</span>
+    <button class="hbtn" onclick="zoomIn()">+</button>
+    <button class="hbtn" onclick="resetView()" style="font-size:11px">fit</button>
+    <button class="hbtn" id="theme-btn" onclick="toggleTheme()" style="font-size:13px">○</button>
+  </div>
+  <div id="canvas"></div>
+</div>
+
+<div id="sidebar">
+  <div id="sb-head"><div id="sb-title"></div><button id="sb-close" onclick="closeSidebar()">×</button></div>
+  <div id="sb-body">
+    <div class="sb-diagram" id="sb-diagram"></div>
+    <div class="sb-fields" id="sb-fields"></div>
+  </div>
+</div>
+
+<script type="module">
+// ── theme ─────────────────────────────────────────────────
+let isDark = localStorage.getItem('omm-theme') !== 'light';
+function applyTheme() {
+  document.body.classList.toggle('light', !isDark);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = isDark ? '○' : '●';
+}
+window.toggleTheme = function() {
+  isDark = !isDark;
+  localStorage.setItem('omm-theme', isDark ? 'dark' : 'light');
+  applyTheme();
+  rebuildCanvas();
+};
+function theme() {
+  return isDark ? {
+    groupFill:'#0a0a0a', groupStroke:'#666666',
+    subFill:'#111111', subStroke:'#666666', subLabelFill:'#ffffff',
+    edgeColor0:'#909090', edgeColor1:'#787878',
+    edgeLabelBg:'#000000', edgeLabelText:'#aaaaaa',
+    grpLabelFill:'#ffffff', grpLabelCenterFill:'#dddddd',
+  } : {
+    groupFill:'#f8f8f8', groupStroke:'#bbb',
+    subFill:'#efefef', subStroke:'#bbb', subLabelFill:'#888',
+    edgeColor0:'#94a3b8', edgeColor1:'#bbb',
+    edgeLabelBg:'#e8e8e8', edgeLabelText:'#475569',
+    grpLabelFill:'#475569', grpLabelCenterFill:'#222',
+  };
+}
+
+// ── helpers ──────────────────────────────────────────────
+const _tm = document.createElement('canvas').getContext('2d');
+function tw(t, f) { _tm.font = f || '11px Inter,system-ui'; return Math.ceil(_tm.measureText(t).width); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function r1(n) { return +n.toFixed(1); }
+function fmtLabel(s) { return s.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
+
+// ── flowchart parser ──────────────────────────────────────
+function parseFlowchart(raw) {
+  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('%%'));
+  let rankdir = 'LR';
+  const nodesMap = new Map(), edges = [], classOf = {};
+
+  function cleanLabel(s) { return s.replace(/<br\s*\/?>/gi, '\n').replace(/\\n/g, '\n'); }
+  function tok(t) {
+    t = t.trim();
+    let m;
+    m = t.match(/^(@?[\w-]+)\["([^"]+)"\]$/); if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'rect',isRef:m[1].startsWith('@')};
+    m = t.match(/^(@?[\w-]+)\[([^\]]+)\]$/);  if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'rect',isRef:m[1].startsWith('@')};
+    m = t.match(/^(@?[\w-]+)\(\(([^)]+)\)\)$/); if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'stadium',isRef:m[1].startsWith('@')};
+    m = t.match(/^(@?[\w-]+)\(([^)]+)\)$/);   if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'round',isRef:m[1].startsWith('@')};
+    m = t.match(/^(@?[\w-]+)\{([^}]+)\}$/);   if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'diamond',isRef:m[1].startsWith('@')};
+    if (/^@?[\w-]+$/.test(t)) { const id=t.replace(/^@/,''); return {id,label:id,shape:'rect',isRef:t.startsWith('@')}; }
+    return null;
+  }
+
+  // Edge pattern: A --> B, A -->|label| B, A -- "label" --> B, etc.
+  const edgeLineRe = /^(.+?)\s+--\s+"([^"]+)"\s+-->\s+(.+)$/;
+  const arrowRe = /(-->(?:\|[^|]*\|)?|--o|--x|---|-.->|==>|~~>)/;
+  for (const line of lines) {
+    const dir = line.match(/^(?:graph|flowchart)\s+([A-Z]{2})/i);
+    if (dir) { const d=dir[1].toUpperCase(); rankdir=(d==='TD'||d==='TB')?'TB':d; continue; }
+    if (/^(classDef|click |style |linkStyle|subgraph|end$)/i.test(line)) continue;
+    const ca = line.match(/^class\s+([\w\-,\s]+)\s+(\w+)$/);
+    if (ca) { ca[1].split(',').map(s=>s.trim()).forEach(id=>classOf[id]=ca[2]); continue; }
+    // Try "-- label -->" syntax first (e.g., APP -- "HTTP API" --> SERVER)
+    const labelEdge = line.match(edgeLineRe);
+    if (labelEdge) {
+      const src=tok(labelEdge[1]), dst=tok(labelEdge[3]);
+      if (src&&dst) {
+        if (!nodesMap.has(src.id)) nodesMap.set(src.id,src);
+        if (!nodesMap.has(dst.id)) nodesMap.set(dst.id,dst);
+        edges.push({from:src.id,to:dst.id,label:labelEdge[2].replace(/<br\s*\/?>/gi,' ')});
+      }
+      continue;
+    }
+    const parts = line.split(arrowRe);
+    if (parts.length >= 3) {
+      const src=tok(parts[0]), dst=tok(parts[2]);
+      if (src&&dst) {
+        if (!nodesMap.has(src.id)) nodesMap.set(src.id,src);
+        if (!nodesMap.has(dst.id)) nodesMap.set(dst.id,dst);
+        const lm=parts[1].match(/\|([^|]+)\|/);
+        edges.push({from:src.id,to:dst.id,label:lm?lm[1].replace(/<br\s*\/?>/gi,' '):''});
+      }
+    } else {
+      const n=tok(line); if (n&&!nodesMap.has(n.id)) nodesMap.set(n.id,n);
+    }
+  }
+  for (const [id,cls] of Object.entries(classOf)) { const n=nodesMap.get(id); if (n) n.cls=cls; }
+  return {rankdir, nodes:[...nodesMap.values()], edges};
+}
+
+// ── node style ────────────────────────────────────────────
+function nodeStyle(node) {
+  const c = node.cls||'';
+  if (isDark) {
+    if (c==='external') return {bg:'#0a0a0a',border:'#666666',dash:null,text:'#cccccc'};
+    if (c==='lib')      return {bg:'#0a0a0a',border:'#666666',dash:null, text:'#cccccc'};
+    return                    {bg:'#0a0a0a',border:'#666666',dash:null, text:'#ffffff'};
+  } else {
+    if (c==='external') return {bg:'#e0e0e0',border:'#bbb',dash:null,text:'#64748b'};
+    if (c==='lib')      return {bg:'#e8e8e8',border:'#c0c0c0',dash:null, text:'#553388'};
+    return                    {bg:'#f0f0f0',border:'#999',    dash:null, text:'#1a1a1a'};
+  }
+}
+
+// ── smooth path through all Dagre waypoints ───────────────
+// Uses quadratic bezier spline so edges respect Dagre's obstacle routing
+function smoothPath(pts) {
+  if (!pts || pts.length < 2) return '';
+  if (pts.length === 2) {
+    // Simple S-curve for two-point edges
+    const [a, b] = pts;
+    const mx = r1((a.x+b.x)/2), my = r1((a.y+b.y)/2);
+    return `M${r1(a.x)},${r1(a.y)} C${mx},${r1(a.y)} ${mx},${r1(b.y)} ${r1(b.x)},${r1(b.y)}`;
+  }
+  // Quadratic bezier spline: smooth through all waypoints
+  let d = `M${r1(pts[0].x)},${r1(pts[0].y)}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mid = { x: (pts[i].x + pts[i+1].x) / 2, y: (pts[i].y + pts[i+1].y) / 2 };
+    d += ` Q${r1(pts[i].x)},${r1(pts[i].y)} ${r1(mid.x)},${r1(mid.y)}`;
+  }
+  const last = pts[pts.length-1];
+  d += ` L${r1(last.x)},${r1(last.y)}`;
+  return d;
+}
+
+// ── render one class group (recursive) ────────────────────
+// _expandedGlobal prevents same class from expanding in multiple branches
+let _expandedGlobal = new Set();
+
+function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
+  if (seen.has(cls)) return null;
+  seen = new Set(seen); seen.add(cls);
+  let labelOverlay = ''; // centered labels for sub-groups, rendered outside grp-inner
+
+  const data = classesData[cls];
+  if (!data?.diagram) return null;
+
+  const parsed = parseFlowchart(data.diagram);
+  const {rankdir, nodes, edges} = parsed;
+  if (!nodes.length) return null;
+
+  // padding around the group content
+  const PAD_L = 16, PAD_R = 20, PAD_T = level===0 ? 20 : 22, PAD_B = 16;
+
+  // For level 0: expand @ref nodes as sub-groups
+  const subGroups = {}; // nodeId -> { cls, W, H, svgContent }
+  const nodeDims  = {}; // nodeId -> { width, height }
+
+  for (const n of nodes) {
+    const refCls = n.isRef ? n.id : null;
+    if (level < maxDepth && refCls && allClasses.includes(refCls) && !seen.has(refCls) && !_expandedGlobal.has(refCls)) {
+      _expandedGlobal.add(refCls);
+      const sub = renderGroup(refCls, classesData, allClasses, level+1, seen);
+      if (sub) {
+        subGroups[n.id] = { cls: refCls, ...sub };
+        // sub-group dims = content + inner padding
+        nodeDims[n.id] = { width: sub.W + 24, height: sub.H + 30 }; // 30 = 16 top label + 14 bottom
+      }
+    }
+    if (!nodeDims[n.id]) {
+      const lbl = n.label.replace(/^@/,'');
+      const [mainLbl] = lbl.split('\n');
+      const hasPath = lbl.includes('\n');
+      const maxW = nodes.length > 10 ? 160 : 220;
+      const w = Math.min(maxW, Math.max(80, tw(mainLbl, level===0?'12px Inter,system-ui':'11px Inter,system-ui') + 44));
+      const baseH = n.shape==='diamond' ? 42 : (level===0 ? 38 : 34);
+      nodeDims[n.id] = {width: w, height: hasPath ? baseH + 14 : baseH};
+    }
+  }
+
+  // Pre-process: identify fan-out groups for compact grid layout
+  const maxPerRow = 3;
+  const _gridGroups = {};  // virtualId -> { parentId, children[], cols, cellW, cellH }
+  const _gridExcluded = new Set();  // node IDs replaced by virtual nodes
+  const _gridPositions = {};  // childId -> { x, y } (filled after dagre)
+
+  for (const n of nodes) {
+    const outEdges = edges.filter(e => e.from === n.id);
+    const leafTargets = outEdges
+      .map(e => e.to)
+      .filter(tid => !edges.some(e2 => e2.from === tid) && !subGroups[tid]);
+    if (leafTargets.length > maxPerRow) {
+      const cols = maxPerRow;
+      const rows = Math.ceil(leafTargets.length / cols);
+      const maxCW = Math.max(...leafTargets.map(id => nodeDims[id].width));
+      const maxCH = Math.max(...leafTargets.map(id => nodeDims[id].height));
+      const cellW = maxCW + 16;
+      const cellH = maxCH + 10;
+      const vid = `__grid_${n.id}`;
+      _gridGroups[vid] = { parentId: n.id, children: leafTargets, cols, cellW, cellH };
+      nodeDims[vid] = { width: cols * cellW, height: rows * cellH };
+      leafTargets.forEach(id => _gridExcluded.add(id));
+    }
+  }
+
+  // Dagre layout with virtual grid nodes
+  const dense = nodes.length > 10;
+  function buildGraph(rd) {
+    const g = new dagre.graphlib.Graph();
+    const nsep = level===0 ? (dense ? 20 : 32) : (dense ? 16 : 24);
+    const rsep = level===0 ? (dense ? 28 : 44) : (dense ? 22 : 32);
+    g.setGraph({rankdir: rd, nodesep:nsep, ranksep:rsep, marginx:PAD_L, marginy:PAD_T});
+    g.setDefaultEdgeLabel(() => ({}));
+    for (const n of nodes) {
+      if (!_gridExcluded.has(n.id)) g.setNode(n.id, nodeDims[n.id]);
+    }
+    for (const vid of Object.keys(_gridGroups)) g.setNode(vid, nodeDims[vid]);
+    const _addedVirtEdges = new Set();
+    for (const e of edges) {
+      let from = e.from, to = e.to;
+      if (_gridExcluded.has(from)) continue;
+      if (_gridExcluded.has(to)) {
+        const vEntry = Object.entries(_gridGroups).find(([,gr]) => gr.children.includes(to));
+        if (!vEntry) continue;
+        to = vEntry[0];
+        const ek = `${from}->${to}`;
+        if (_addedVirtEdges.has(ek)) continue;
+        _addedVirtEdges.add(ek);
+      }
+      if (g.hasNode(from) && g.hasNode(to)) g.setEdge(from, to, {label: e.label});
+    }
+    try { dagre.layout(g); return g; } catch { return null; }
+  }
+
+  let g = buildGraph(rankdir);
+  if (!g) return null;
+  const gi0 = g.graph();
+  const aspectThreshold = nodes.length > 12 ? 1.4 : nodes.length > 7 ? 1.6 : 2.0;
+  if (gi0.width > 0 && gi0.height > 0 && gi0.width / gi0.height > aspectThreshold && rankdir !== 'TB') {
+    const gTB = buildGraph('TB');
+    if (gTB) g = gTB;
+  }
+
+  // Expand virtual grid nodes into child positions
+  for (const [vid, group] of Object.entries(_gridGroups)) {
+    const vNode = g.node(vid);
+    if (!vNode) continue;
+    const { children, cols, cellW, cellH } = group;
+    const rows = Math.ceil(children.length / cols);
+    const startX = vNode.x - ((cols - 1) * cellW) / 2;
+    const startY = vNode.y - ((rows - 1) * cellH) / 2;
+    children.forEach((childId, i) => {
+      _gridPositions[childId] = {
+        x: startX + (i % cols) * cellW,
+        y: startY + Math.floor(i / cols) * cellH
+      };
+    });
+  }
+
+  const gi = g.graph();
+  const W = r1(gi.width + PAD_R);
+  const H = r1(gi.height + PAD_B);
+
+  const uid = `${cls.replace(/[^a-z0-9]/gi,'')}_l${level}_`;
+  const th = theme();
+  let svg = '';
+
+  // edges
+  edges.forEach((e,i) => {
+    if (_gridExcluded.has(e.from)) return; // skip edges from grid children
+    let pts, d, mid;
+    const srcPos = g.node(e.from) || _gridPositions[e.from];
+    const tgtPos = _gridPositions[e.to] || g.node(e.to);
+    if (!srcPos || !tgtPos) return;
+    if (_gridPositions[e.to]) {
+      // Edge to grid child: direct path from parent to child grid position
+      const mx = (srcPos.x + tgtPos.x) / 2, my = (srcPos.y + tgtPos.y) / 2;
+      pts = [{x:srcPos.x,y:srcPos.y},{x:mx,y:my},{x:tgtPos.x,y:tgtPos.y}];
+      d = smoothPath(pts);
+      mid = {x:mx, y:my};
+    } else {
+      const ed = g.edge(e.from, e.to); if (!ed?.points?.length) return;
+      pts = ed.points;
+      d = smoothPath(pts);
+      mid = pts[Math.floor(pts.length/2)];
+    }
+    const ec = level===0 ? th.edgeColor0 : th.edgeColor1;
+    const mk = `${uid}m${i}`;
+    svg += `<defs><marker id="${mk}" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0.5 L0,4.5 L6,2.5 z" fill="${ec}"/></marker></defs>
+      <path class="edge-path" d="${d}" stroke="${ec}" stroke-width="2" fill="none" marker-end="url(#${mk})" data-from="${esc(e.from)}" data-to="${esc(e.to)}"/>`;
+    if (e.label) {
+      const lw = tw(e.label,'9px Inter')+8;
+      const mx=r1(mid.x), my=r1(mid.y);
+      svg += `<g class="edge-label"><rect x="${mx-lw/2}" y="${my-6}" width="${lw}" height="12" rx="2" fill="${th.edgeLabelBg}"/>
+        <text x="${mx}" y="${my+3}" text-anchor="middle" font-family="Inter,system-ui" font-size="9" fill="${th.edgeLabelText}">${esc(e.label)}</text></g>`;
+    }
+  });
+
+  // nodes
+  for (const n of nodes) {
+    const pos = _gridPositions[n.id] || g.node(n.id); if (!pos) continue;
+    const dim = nodeDims[n.id];
+    const nx = r1(pos.x - dim.width/2);
+    const ny = r1(pos.y - dim.height/2);
+    const sg = subGroups[n.id];
+
+    if (sg) {
+      // ── sub-group: dashed boundary + nested content ──
+      const safeId = esc(sg.cls);
+      const isRef = n.label.startsWith('@');
+      const refSubStroke = th.subStroke;
+      const refDash = '';
+      svg += `<g class="grp-node" onclick="event.stopPropagation();window.__openSb('${safeId}')" data-cls="${safeId}" data-depth="${level+1}" transform="translate(${nx},${ny})">`;
+      svg += `<rect class="grp-border" width="${dim.width}" height="${dim.height}" rx="5"
+        fill="${th.subFill}" stroke="${refSubStroke}" stroke-width="2"/>`;
+      const _slW = tw(fmtLabel(sg.cls), '600 9px "Plus Jakarta Sans",Inter,system-ui') + 12;
+      svg += `<rect class="grp-label-top grp-label-bg" x="5" y="-7" width="${_slW}" height="14" rx="2" fill="${th.subFill}" opacity="1"/>`;
+      svg += `<text class="grp-label-top" x="10" y="2" font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="9" font-weight="600"
+        fill="${th.subLabelFill}" letter-spacing="0.05em">${esc(fmtLabel(sg.cls))}</text>`;
+      svg += `<g class="grp-inner" transform="translate(12,18)">${sg.svgContent}</g>`;
+      svg += `</g>`;
+      labelOverlay += `<text class="grp-label-center" x="${r1(nx + dim.width/2)}" y="${r1(ny + dim.height/2)}" text-anchor="middle" dominant-baseline="central"
+        font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="9" font-weight="600" fill="${th.grpLabelCenterFill}" letter-spacing="0.05em">${esc(fmtLabel(sg.cls))}</text>`;
+    } else {
+      // ── regular node ──
+      const st = nodeStyle(n);
+      if (n.label.startsWith('@')) {
+        // @ref nodes keep same border as default (white)
+        // @ref nodes keep solid border
+      }
+      const da = st.dash ? `stroke-dasharray="${st.dash}"` : '';
+      const rawLbl = n.label.replace(/^@/,'');
+      const [mainLbl, pathLbl] = rawLbl.split('\n');
+      const cx = r1(pos.x), cy = r1(pos.y);
+      const fs = level===0 ? 12 : 11;
+      const safeId = esc(n.id);
+      let shape = '';
+      if (n.shape==='diamond') {
+        shape = `<polygon class="nshape" points="${cx},${ny} ${nx+dim.width},${cy} ${cx},${ny+dim.height} ${nx},${cy}"
+          fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
+      } else if (n.shape==='stadium'||n.shape==='round') {
+        shape = `<rect class="nshape" x="${nx}" y="${ny}" width="${dim.width}" height="${dim.height}"
+          rx="${dim.height/2}" fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
+      } else {
+        shape = `<rect class="nshape" x="${nx}" y="${ny}" width="${dim.width}" height="${dim.height}"
+          rx="4" fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
+      }
+      if (pathLbl) {
+        svg += `<g class="reg-node" data-cls="${safeId}" onclick="event.stopPropagation();window.__openSb('${safeId}')">${shape}
+          <text class="node-lbl" x="${cx}" y="${r1(cy - 7)}" text-anchor="middle" dominant-baseline="central"
+            font-family="Inter,system-ui,sans-serif" font-size="${fs}" fill="${st.text}">${esc(mainLbl)}</text>
+          <text class="node-path" x="${cx}" y="${r1(cy + 7)}" text-anchor="middle" dominant-baseline="central"
+            font-family="'SF Mono','Fira Code',monospace" font-size="9" fill="${st.text}" opacity="0.45">${esc(pathLbl)}</text>
+        </g>`;
+      } else {
+        svg += `<g class="reg-node" data-cls="${safeId}" onclick="event.stopPropagation();window.__openSb('${safeId}')">${shape}
+          <text class="node-lbl" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
+            font-family="Inter,system-ui,sans-serif" font-size="${fs}" fill="${st.text}">${esc(mainLbl)}</text>
+        </g>`;
+      }
+    }
+  }
+
+  return { svgContent: svg, W, H, labelOverlay };
+}
+
+// ── sidebar diagram renderer (flat, for sidebar only) ─────
+function renderFlatSVG(text) {
+  if (!text) return null;
+  let parsed; try { parsed = parseFlowchart(text); } catch { return null; }
+  const {rankdir, nodes, edges} = parsed;
+  if (!nodes.length) return null;
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({rankdir, nodesep:36, ranksep:48, marginx:18, marginy:14});
+  g.setDefaultEdgeLabel(() => ({}));
+  const dims = {};
+  for (const n of nodes) {
+    const lbl = n.label.replace(/^@/,'');
+    const [mainLbl] = lbl.split('\n');
+    const hasPath = lbl.includes('\n');
+    const w = Math.min(180,Math.max(60,tw(mainLbl,'11px Inter,system-ui')+28));
+    const h = (n.shape==='diamond'?34:28) + (hasPath ? 12 : 0);
+    dims[n.id]={w,h}; g.setNode(n.id,{width:w,height:h});
+  }
+  for (const e of edges) { if (g.hasNode(e.from)&&g.hasNode(e.to)) g.setEdge(e.from,e.to,{label:e.label}); }
+  try { dagre.layout(g); } catch { return null; }
+  const gi = g.graph();
+  const W = r1((gi.width||150)+36), H = r1((gi.height||80)+28);
+  let edg='', nds='';
+  const sth = theme();
+  edges.forEach((e,i) => {
+    const ed=g.edge(e.from,e.to); if (!ed?.points?.length) return;
+    const pts=ed.points, d=smoothPath(pts);
+    const mid=pts[Math.floor(pts.length/2)];
+    const mk=`sbm${i}${Math.random().toString(36).slice(2,5)}`;
+    edg+=`<defs><marker id="${mk}" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0.5 L0,4.5 L6,2.5 z" fill="${sth.edgeColor0}"/></marker></defs>
+      <path class="edge-path" d="${d}" stroke="${sth.edgeColor0}" stroke-width="2" fill="none" marker-end="url(#${mk})" data-from="${esc(e.from)}" data-to="${esc(e.to)}"/>`;
+    if (e.label) {
+      const lw=tw(e.label,'9px Inter')+8, mx=r1(mid.x), my=r1(mid.y);
+      edg+=`<rect x="${mx-lw/2}" y="${my-6}" width="${lw}" height="12" rx="2" fill="${sth.edgeLabelBg}"/>
+        <text x="${mx}" y="${my+3}" text-anchor="middle" font-family="Inter,system-ui" font-size="9" fill="${sth.edgeLabelText}">${esc(e.label)}</text>`;
+    }
+  });
+  for (const n of nodes) {
+    const pos=g.node(n.id); if (!pos) continue;
+    const {w,h}=dims[n.id];
+    const nx=r1(pos.x-w/2), ny=r1(pos.y-h/2), cx=r1(pos.x), cy=r1(pos.y);
+    const st=nodeStyle(n), da=st.dash?`stroke-dasharray="${st.dash}"`:'';
+    const rawLbl=n.label.replace(/^@/,'');
+    const [mainLbl, pathLbl]=rawLbl.split('\n');
+    let shape='';
+    if (n.shape==='diamond') shape=`<polygon points="${cx},${ny} ${nx+w},${cy} ${cx},${ny+h} ${nx},${cy}" fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
+    else if (n.shape==='stadium'||n.shape==='round') shape=`<rect x="${nx}" y="${ny}" width="${w}" height="${h}" rx="${h/2}" fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
+    else shape=`<rect x="${nx}" y="${ny}" width="${w}" height="${h}" rx="4" fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
+    if (pathLbl) {
+      nds+=`<g>${shape}
+        <text x="${cx}" y="${r1(cy-6)}" text-anchor="middle" dominant-baseline="central"
+          font-family="Inter,system-ui" font-size="11" fill="${st.text}">${esc(mainLbl)}</text>
+        <text x="${cx}" y="${r1(cy+6)}" text-anchor="middle" dominant-baseline="central"
+          font-family="'SF Mono','Fira Code',monospace" font-size="9" fill="${st.text}" opacity="0.45">${esc(pathLbl)}</text>
+      </g>`;
+    } else {
+      nds+=`<g>${shape}<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
+        font-family="Inter,system-ui" font-size="11" fill="${st.text}">${esc(mainLbl)}</text></g>`;
+    }
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;overflow:visible" xmlns="http://www.w3.org/2000/svg">${edg}${nds}</svg>`;
+}
+
+// ── canvas pan/zoom ───────────────────────────────────────
+const canvasWrap = document.getElementById('canvas-wrap');
+const canvasEl   = document.getElementById('canvas');
+const sidebar    = document.getElementById('sidebar');
+const sbTitle    = document.getElementById('sb-title');
+const sbDiagram  = document.getElementById('sb-diagram');
+const sbFields   = document.getElementById('sb-fields');
+const zoomLabel  = document.getElementById('zoom-label');
+const navTitle   = document.getElementById('nav-title');
+const navList    = document.getElementById('nav-list');
+
+let vpX=0, vpY=0, vpScale=0.7;
+let classes=[], classesData={}, refsData={};
+let selectedCls=null, svgW=0, svgH=0;
+let maxDepth = 2;  // dynamically updated based on zoom
+
+const api = p => fetch(p).then(r=>r.json()).catch(()=>({}));
+
+// ── transform ──────────────────────────────────────────────
+const MIN_SCALE = 0.02, MAX_SCALE = 8;
+
+function applyTransform() {
+  canvasEl.style.transform=`translate(${vpX}px,${vpY}px) scale(${vpScale})`;
+  const pct = Math.round(vpScale*100);
+  zoomLabel.textContent = pct >= 1000 ? `${(pct/100).toFixed(0)}k%` : `${pct}%`;
+
+  // Scale-compensated group labels: keep ~13px rendered size
+  const targetPx = 13;
+  const fs = Math.min(72, Math.max(10, targetPx / vpScale));
+  const fsStr = (Math.round(fs * 10) / 10).toString();
+  const labelFill = isDark ? (vpScale < 0.5 ? '#ccc' : '#cbd5e1') : (vpScale < 0.5 ? '#333' : '#475569');
+  document.querySelectorAll('#canvas .grp-label-top').forEach(el => {
+    if (el.tagName === 'text') {
+      el.setAttribute('font-size', fsStr);
+      el.setAttribute('fill', labelFill);
+    } else if (el.classList.contains('grp-label-bg')) {
+      // Scale background rect height to match font-size
+      el.setAttribute('height', String(Math.round(fs * 1.5)));
+    }
+  });
+  // Center label: keep ~20px rendered size in overview
+  const fsCtr = Math.min(120, Math.max(14, 20 / vpScale));
+  const fsCtrStr = (Math.round(fsCtr * 10) / 10).toString();
+  document.querySelectorAll('#canvas .grp-label-center').forEach(el => {
+    el.setAttribute('font-size', fsCtrStr);
+  });
+  // Scale-compensated node labels: keep ~11px rendered size at any zoom level
+  const fsNode = Math.min(60, Math.max(11, 11 / vpScale));
+  const fsNodeStr = (Math.round(fsNode * 10) / 10).toString();
+  document.querySelectorAll('#canvas .node-lbl').forEach(el => {
+    el.setAttribute('font-size', fsNodeStr);
+  });
+
+  canvasWrap.classList.toggle('zoom-overview', vpScale < 0.42);
+
+  // Viewport-relative expansion: measure group's own border rect
+  const vpW = canvasWrap.clientWidth;
+  document.querySelectorAll('#canvas [data-depth]').forEach(el => {
+    const border = el.querySelector(':scope > .grp-border');
+    if (!border) return;
+    const rect = border.getBoundingClientRect();
+    const depth = parseInt(el.getAttribute('data-depth') || '0', 10);
+    // Root=50%, depth1=65%, depth2=80% of viewport width to expand
+    const threshold = 0.5 + depth * 0.15;
+    const expanded = rect.width >= vpW * threshold;
+    el.classList.toggle('grp-expanded', expanded);
+  });
+
+  // Depth-based re-render (debounced)
+  // Depth scales with zoom — no hard cap
+  const neededDepth = vpScale >= 3.0 ? 6 : vpScale >= 1.5 ? 5 : vpScale >= 0.9 ? 4 : vpScale >= 0.55 ? 3 : 2;
+  if (neededDepth !== maxDepth) {
+    maxDepth = neededDepth;
+    if (_depthTimer) clearTimeout(_depthTimer);
+    _depthTimer = setTimeout(rebuildCanvas, 180);
+  }
+}
+let _depthTimer = null;
+
+function zoomTo(newScale, originX, originY) {
+  const s = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+  const cW = canvasWrap.clientWidth, cH = canvasWrap.clientHeight;
+  const cx = originX ?? cW/2, cy = originY ?? cH/2;
+  vpX = cx - (cx - vpX) * (s / vpScale);
+  vpY = cy - (cy - vpY) * (s / vpScale);
+  vpScale = s;
+  applyTransform();
+}
+
+function centerView() {
+  if (!svgW) return;
+  const cW=canvasWrap.clientWidth, cH=canvasWrap.clientHeight;
+  const s = Math.min(0.9, (cW-80)/svgW, (cH-80)/svgH);
+  vpScale = s;
+  vpX = cW/2 - (svgW/2)*s;
+  vpY = cH/2 - (svgH/2)*s;
+  applyTransform();
+}
+
+window.zoomIn    = () => zoomTo(vpScale * 1.25);
+window.zoomOut   = () => zoomTo(vpScale / 1.25);
+window.resetView = centerView;
+
+// ── animated transition ────────────────────────────────────
+let _raf = null;
+function animateTo(toX, toY, toScale, duration=380) {
+  if (_raf) cancelAnimationFrame(_raf);
+  const fromX = vpX, fromY = vpY, fromS = vpScale;
+  const t0 = performance.now();
+  function frame(now) {
+    const t = Math.min(1, (now - t0) / duration);
+    const e = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    vpX = fromX + (toX - fromX) * e;
+    vpY = fromY + (toY - fromY) * e;
+    vpScale = fromS + (toScale - fromS) * e;
+    applyTransform();
+    if (t < 1) _raf = requestAnimationFrame(frame);
+  }
+  _raf = requestAnimationFrame(frame);
+}
+
+function focusGroup(cls) {
+  // Mark focused group as exempt from blur
+  document.querySelectorAll('#canvas [data-cls].focus-exempt').forEach(el => el.classList.remove('focus-exempt'));
+  const el = document.querySelector(`#canvas [data-cls="${CSS.escape(cls)}"]`);
+  if (!el) return;
+  el.classList.add('focus-exempt');
+  // Also exempt all ancestor groups so parent blur doesn't hide focused child
+  let ancestor = el.parentElement;
+  while (ancestor) {
+    if (ancestor.hasAttribute && ancestor.hasAttribute('data-cls')) {
+      ancestor.classList.add('focus-exempt');
+    }
+    ancestor = ancestor.parentElement;
+  }
+
+  // Use the group's border rect for accurate dimensions
+  const border = el.querySelector(':scope > .grp-border') || el;
+  const rect = border.getBoundingClientRect();
+  const wrapRect = canvasWrap.getBoundingClientRect();
+
+  // Convert screen coords to SVG space
+  const svgCenterX = (rect.left + rect.width/2 - wrapRect.left - vpX) / vpScale;
+  const svgCenterY = (rect.top + rect.height/2 - wrapRect.top - vpY) / vpScale;
+  const svgW = rect.width / vpScale;
+  const svgH = rect.height / vpScale;
+
+  // Available viewport (account for right sidebar overlay)
+  const sbW = sidebar.classList.contains('open') ? 400 : 0;
+  const availW = canvasWrap.clientWidth - sbW - 60;
+  const availH = canvasWrap.clientHeight - 60;
+
+  // Target scale to fit element with padding
+  const targetScale = Math.min(2.5, Math.max(0.15, Math.min(availW / svgW, availH / svgH) * 0.85));
+
+  // Center in available viewport
+  const centerX = (canvasWrap.clientWidth - sbW) / 2;
+  const centerY = canvasWrap.clientHeight / 2;
+  const toX = centerX - svgCenterX * targetScale;
+  const toY = centerY - svgCenterY * targetScale;
+
+  animateTo(toX, toY, targetScale);
+}
+
+// ── wheel: Figma-style ─────────────────────────────────────
+// trackpad two-finger scroll → pan
+// trackpad pinch (ctrlKey) / Ctrl+mousewheel → zoom
+canvasWrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  clearFocusExempt();
+
+  if (e.ctrlKey || e.metaKey) {
+    // Zoom — trackpad pinch gives pixel deltas, mouse wheel gives line deltas
+    let factor;
+    if (e.deltaMode === 0) {
+      // trackpad pinch: more responsive
+      factor = Math.pow(0.993, e.deltaY);
+    } else {
+      // mouse wheel: snappier step
+      factor = e.deltaY < 0 ? 1.22 : 1/1.22;
+    }
+    zoomTo(vpScale * factor, e.clientX, e.clientY);
+  } else {
+    // Pan — respect both axes (trackpad two-finger swipe)
+    vpX -= e.deltaX;
+    vpY -= e.deltaY;
+    applyTransform();
+  }
+}, { passive: false });
+
+// ── pan: space+drag, middle-mouse, empty-area drag ─────────
+let spaceHeld = false;
+let panning = false, panA = {}, panV = {};
+
+function updateCursor() {
+  if (panning)      canvasWrap.style.cursor = 'grabbing';
+  else if (spaceHeld) canvasWrap.style.cursor = 'grab';
+  else              canvasWrap.style.cursor = '';
+}
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && document.activeElement === document.body) {
+    e.preventDefault();
+    spaceHeld = true;
+    updateCursor();
+  }
+  // Figma keyboard shortcuts
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
+    if (e.key === '0') { e.preventDefault(); centerView(); }
+    if (e.key === '1') { e.preventDefault(); zoomTo(1); }
+    if (e.key === '2') { e.preventDefault(); zoomTo(2); }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); window.zoomIn(); }
+    if (e.key === '-') { e.preventDefault(); window.zoomOut(); }
+  }
+  if (e.key === 'Escape') closeSidebar();
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space') { spaceHeld = false; updateCursor(); }
+});
+
+canvasWrap.addEventListener('mousedown', e => {
+  const isMiddle   = e.button === 1;
+  const isSpaceDrag = e.button === 0 && spaceHeld;
+  const isEmptyDrag = e.button === 0 && !spaceHeld &&
+    !e.target.closest('.grp-node') && !e.target.closest('.reg-node');
+
+  if (isMiddle || isSpaceDrag || isEmptyDrag) {
+    e.preventDefault();
+    panning = true;
+    panA = { x: e.clientX, y: e.clientY };
+    panV = { x: vpX, y: vpY };
+    updateCursor();
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  if (!panning) return;
+  vpX = panV.x + (e.clientX - panA.x);
+  vpY = panV.y + (e.clientY - panA.y);
+  applyTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  if (panning) { panning = false; updateCursor(); }
+});
+
+// close sidebar when clicking empty canvas area
+canvasWrap.addEventListener('click', e => {
+  if (!e.target.closest('[onclick]')) closeSidebar();
+});
+
+// ── sidebar ───────────────────────────────────────────────
+window.__openSb = function(cls) {
+  if (!classes.includes(cls)) return;
+  // highlight
+  document.querySelectorAll('.grp-node,.reg-node').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll(`[data-cls="${CSS.escape(cls)}"]`).forEach(el=>el.classList.add('selected'));
+  selectedCls=cls;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-nav') === cls);
+  });
+  openSidebar(cls);
+  // Wait for sidebar transition to complete (250ms) before focusing
+  setTimeout(() => focusGroup(cls), 260);
+  // Cloud mode: notify parent frame of selection
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'class-selected', className: cls }, '*');
+  }
+};
+
+function openSidebar(cls) {
+  const data=classesData[cls]||{}, refs=refsData[cls]||{};
+  sbTitle.textContent=fmtLabel(cls);
+  sbDiagram.innerHTML = data.diagram ? (renderFlatSVG(data.diagram)||'') : '';
+  const md=t=>t?marked.parse(t):'';
+  const sec=(title,body,ex='')=>body?`<div class="sb-sec ${ex}"><div class="sb-sec-title">${title}</div><div class="sb-sec-body">${body}</div></div>`:'';
+  let html='';
+  if (data.meta) {
+    const t=data.meta.updated?new Date(data.meta.updated).toLocaleString():'';
+    html+=`<div class="sb-sec"><div class="sb-sec-title">Meta</div><div class="sb-meta-text">${t?t+'<br>':''}${data.meta.update_count||0} updates${data.meta.git_branch?` · ${data.meta.git_branch}`:''}${data.meta.git_commit?` · ${data.meta.git_commit}`:''}</div></div>`;
+  }
+  html+=sec('Description',md(data.description));
+  html+=sec('Constraints',md(data.constraint));
+  html+=sec('Concerns',md(data.concern),'sb-concern');
+  html+=sec('Context',md(data.context));
+  html+=sec('Todo',md(data.todo));
+  html+=sec('Notes',md(data.note));
+  const inc=refs.incoming||[], out=refs.outgoing||[];
+  if (inc.length||out.length) {
+    const links=[
+      ...inc.map(r=>{const n=typeof r==='string'?r:r.source_class;return `<span class="sb-ref" onclick="window.__openSb('${esc(n)}')">← ${esc(n)}</span>`;}),
+      ...out.map(r=>{const n=typeof r==='string'?r:r.target_class;return `<span class="sb-ref" onclick="window.__openSb('${esc(n)}')">→ ${esc(n)}</span>`;}),
+    ].join('');
+    html+=`<div class="sb-sec"><div class="sb-sec-title">References</div><div class="sb-refs">${links}</div></div>`;
+  }
+  sbFields.innerHTML=html;
+  sidebar.classList.add('open');
+}
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  document.querySelectorAll('.grp-node,.reg-node').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('#canvas [data-cls].focus-exempt').forEach(el => el.classList.remove('focus-exempt'));
+  selectedCls=null;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+}
+function clearFocusExempt() {
+  document.querySelectorAll('#canvas [data-cls].focus-exempt').forEach(el => el.classList.remove('focus-exempt'));
+}
+window.closeSidebar=closeSidebar;
+
+// ── build full canvas SVG ─────────────────────────────────
+function buildCanvas(classes, classesData, refsData) {
+  _expandedGlobal = new Set(); // reset per render
+  // Find top-level classes: those with no incoming @refs from other classes
+  const referenced = new Set();
+  for (const cls of classes) {
+    const diagram = classesData[cls]?.diagram || '';
+    const refs = [...diagram.matchAll(/@([\w-]+)/g)].map(m=>m[1]);
+    refs.forEach(r => { if (classes.includes(r)) referenced.add(r); });
+  }
+  const topLevel = classes.filter(c => !referenced.has(c));
+  // Fallback: if everything is referenced, just show all
+  const roots = topLevel.length ? topLevel : classes;
+
+  // Render each top-level group
+  const groups = [];
+  for (const cls of roots) {
+    const g = renderGroup(cls, classesData, classes, 0);
+    if (g) groups.push({ cls, ...g });
+  }
+  if (!groups.length) return null;
+
+  // Grid layout — ceil(sqrt(N)) columns for balanced aspect ratio
+  const COLS = Math.max(1, Math.ceil(Math.sqrt(groups.length)));
+  const GAP_X = 70, GAP_Y = 90, OUTER_PAD = 60;
+
+  // Assign grid positions
+  groups.forEach((g, i) => { g._col = i % COLS; g._row = Math.floor(i / COLS); });
+  const numRows = Math.ceil(groups.length / COLS);
+
+  // Column widths = max group width in that column
+  const colW = Array.from({length: COLS}, (_, c) =>
+    Math.max(...groups.filter(g => g._col === c).map(g => g.W)));
+  // Row heights = max group height in that row
+  const rowH = Array.from({length: numRows}, (_, r) =>
+    Math.max(...groups.filter(g => g._row === r).map(g => g.H)));
+
+  // Compute offsets
+  const colX = colW.reduce((acc, w, i) => { acc.push(i===0 ? 0 : acc[i-1]+colW[i-1]+GAP_X); return acc; }, []);
+  const rowY = rowH.reduce((acc, h, i) => { acc.push(i===0 ? 0 : acc[i-1]+rowH[i-1]+GAP_Y); return acc; }, []);
+
+  const totalW = colX[COLS-1] + colW[COLS-1];
+  const totalH = rowY[numRows-1] + rowH[numRows-1];
+  const canvasW = r1(totalW + OUTER_PAD*2);
+  const canvasH = r1(totalH + OUTER_PAD*2);
+
+  const th = theme();
+  let innerSVG = '';
+  for (const g of groups) {
+    const tx = r1(OUTER_PAD + colX[g._col]);
+    const ty = r1(OUTER_PAD + rowY[g._row]);
+    innerSVG += `<g class="grp-node" data-cls="${esc(g.cls)}" data-depth="0" transform="translate(${tx},${ty})" onclick="event.stopPropagation();window.__openSb('${esc(g.cls)}')">`;
+    innerSVG += `<rect class="grp-border" width="${g.W}" height="${g.H}" rx="8"
+      fill="${th.groupFill}" stroke="${th.groupStroke}" stroke-width="2"/>`;
+    const _lblW = tw(fmtLabel(g.cls), '600 10px "Plus Jakarta Sans",Inter,system-ui') + 14;
+    innerSVG += `<rect class="grp-label-top grp-label-bg" x="6" y="-10" width="${_lblW}" height="20" rx="2" fill="${th.groupFill}" opacity="1"/>`;
+    innerSVG += `<text class="grp-label-top" x="12" y="3" font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="10" font-weight="600"
+      fill="${th.grpLabelFill}" letter-spacing="0.05em">${esc(fmtLabel(g.cls))}</text>`;
+    innerSVG += `<g class="grp-inner">${g.svgContent}</g>`;
+    if (g.labelOverlay) innerSVG += `<g class="grp-sub-labels">${g.labelOverlay}</g>`;
+    innerSVG += `<text class="grp-label-center" x="${r1(g.W/2)}" y="${r1(g.H/2)}" text-anchor="middle" dominant-baseline="central"
+      font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="10" font-weight="600" fill="${th.grpLabelCenterFill}" letter-spacing="0.05em">${esc(fmtLabel(g.cls))}</text>`;
+    innerSVG += `</g>`;
+  }
+
+  return { html: `<svg width="${canvasW}" height="${canvasH}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">${innerSVG}</svg>`, W: canvasW, H: canvasH };
+}
+
+// ── post-render: glow filter + edge hover delegation ──────
+let _hoverListenerAttached = false;
+function postRender() {
+  // Insert glow filter into the first SVG's <defs> in #canvas
+  const svg = canvasEl.querySelector('svg');
+  if (svg) {
+    let defs = svg.querySelector('defs');
+    if (!defs) { defs = document.createElementNS('http://www.w3.org/2000/svg','defs'); svg.prepend(defs); }
+    // Remove existing glow filter if present (from prior render)
+    const existing = defs.querySelector('#glow');
+    if (existing) existing.remove();
+    defs.insertAdjacentHTML('beforeend',
+      '<filter id="glow"><feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>' +
+      '<feFlood flood-color="#818cf8" flood-opacity="0.4" result="color"/>' +
+      '<feComposite in="color" in2="blur" operator="in" result="shadow"/>' +
+      '<feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+    );
+  }
+
+  // Attach edge-hover event delegation once (survives innerHTML replacements on canvasEl)
+  if (!_hoverListenerAttached) {
+    _hoverListenerAttached = true;
+    canvasWrap.addEventListener('mouseover', e => {
+      const node = e.target.closest('.reg-node, .grp-node');
+      if (!node) return;
+      const nodeId = node.dataset.cls;
+      if (!nodeId) return;
+      // Only highlight edges in the same parent group (sibling edges)
+      const parentGroup = node.parentElement?.closest('[data-cls]') || node.closest('svg');
+      if (!parentGroup) return;
+      parentGroup.querySelectorAll('.edge-path').forEach(path => {
+        const from = path.dataset.from, to = path.dataset.to;
+        const match = from === nodeId || to === nodeId || from === '@'+nodeId || to === '@'+nodeId;
+        const edgeParentGroup = path.closest('[data-cls]') || path.closest('svg');
+        if (edgeParentGroup !== parentGroup) return;
+        if (match) {
+          path.classList.add('edge-hl');
+        }
+      });
+    });
+    canvasWrap.addEventListener('mouseout', e => {
+      const node = e.target.closest('.reg-node, .grp-node');
+      if (!node) return;
+      document.querySelectorAll('#canvas .edge-path.edge-hl').forEach(path => {
+        path.classList.remove('edge-hl');
+      });
+    });
+  }
+}
+
+// ── rebuild canvas (depth change) ─────────────────────────
+function rebuildCanvas() {
+  const result = buildCanvas(classes, classesData, refsData);
+  if (!result) return;
+  canvasEl.innerHTML = result.html;
+  svgW = result.W; svgH = result.H;
+  applyTransform(); // re-sync label sizes / blur state
+  postRender();
+  // restore selected highlight only (no re-focus — user controls viewport after initial focus)
+  if (selectedCls) {
+    document.querySelectorAll(`[data-cls="${CSS.escape(selectedCls)}"]`)
+      .forEach(el => el.classList.add('selected'));
+  }
+}
+
+// ── nav sidebar tree ─────────────────────────────────────
+function buildNavTree() {
+  navList.innerHTML = '';
+  if (!classes.length) return;
+
+  const referenced = new Set();
+  for (const name of classes) {
+    const out = refsData[name]?.outgoing || [];
+    for (const o of out) {
+      const ref = typeof o === 'string' ? o : (o.target_class || o);
+      if (classes.includes(ref)) referenced.add(ref);
+    }
+  }
+
+  let roots = classes.filter(c => !referenced.has(c));
+  if (roots.length === 0 || roots.length === classes.length) {
+    classes.forEach(c => addNavItem(c, '', true));
+    return;
+  }
+
+  const globalSeen = new Set();
+  function renderNode(name, prefix, isLast) {
+    if (globalSeen.has(name)) return;
+    globalSeen.add(name);
+    addNavItem(name, prefix, isLast);
+    const out = (refsData[name]?.outgoing || [])
+      .map(o => typeof o === 'string' ? o : (o.target_class || o))
+      .filter(ref => classes.includes(ref) && !globalSeen.has(ref));
+    out.forEach((ref, i) => {
+      renderNode(ref, prefix + (isLast ? '   ' : '│  '), i === out.length - 1);
+    });
+  }
+  roots.forEach((r, i) => renderNode(r, '', i === roots.length - 1));
+}
+
+function addNavItem(name, prefix, isLast) {
+  const btn = document.createElement('button');
+  btn.setAttribute('data-nav', name);
+  btn.onclick = () => window.__openSb(name);
+
+  if (prefix === '') {
+    btn.className = 'nav-item nav-root';
+    btn.textContent = name;
+  } else {
+    btn.className = 'nav-item';
+    const pre = document.createElement('span');
+    pre.className = 'nav-pre';
+    // Each slot is 3 chars ("│  " or "   ")
+    for (let i = 0; i < prefix.length; i += 3) {
+      const slot = document.createElement('span');
+      slot.className = 'nav-slot' + (prefix[i] === '│' ? ' nav-slot-line' : '');
+      pre.appendChild(slot);
+    }
+    const conn = document.createElement('span');
+    conn.className = 'nav-conn' + (isLast ? ' nav-conn-last' : '');
+    pre.appendChild(conn);
+    btn.appendChild(pre);
+    const label = document.createElement('span');
+    label.className = 'nav-label';
+    label.textContent = name;
+    btn.appendChild(label);
+  }
+
+  navList.appendChild(btn);
+}
+
+// ── init ──────────────────────────────────────────────────
+async function init() {
+  applyTheme();
+  classes = await api('/api/classes');
+  if (!classes.length) {
+    canvasEl.innerHTML=`<div class="empty-state" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)"><p>No classes found.<br>Run <code>/omm-scan</code> in Claude Code.</p></div>`;
+    return;
+  }
+  const [da,ra] = await Promise.all([
+    Promise.all(classes.map(c=>api(`/api/class/${c}`))),
+    Promise.all(classes.map(c=>api(`/api/class/${c}/refs`))),
+  ]);
+  classes.forEach((c,i)=>{classesData[c]=da[i];refsData[c]=ra[i];});
+
+  // Set project name and build nav tree
+  navTitle.textContent = window.__projectName || 'omm';
+  buildNavTree();
+
+  const result = buildCanvas(classes, classesData, refsData);
+  if (result) {
+    canvasEl.innerHTML = result.html;
+    svgW = result.W; svgH = result.H;
+  }
+  postRender();
+  requestAnimationFrame(centerView);
+
+  // Cloud mode: notify parent frame of available classes
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'classes-loaded', classes: classes, refs: refsData }, '*');
+  }
+
+  // Cloud mode: listen for parent frame messages
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'select-class') {
+      var className = e.data.className;
+      if (typeof window.__openSb === 'function') {
+        window.__openSb(className);
+      }
+    }
+  });
+}
+
+const sse = new EventSource('/events');
+sse.addEventListener('change', async () => {
+  const sel = selectedCls;
+  await init();
+  if (sel && classes.includes(sel)) window.__openSb(sel);
+});
+
+init();
+</script>
+</body>
+</html>

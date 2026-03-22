@@ -1,0 +1,12 @@
+graph TD
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    cli["omm CLI Entry\nsrc/cli.ts"]:::entry
+    cli -->|"global commands"| global["Global Commands\ninit / list / show / delete\nstatus / diff / refs / serve"]
+    cli -->|"cloud commands"| cloud_cmds["Cloud Commands\nlogin / logout / push / pull\nlink / share"]
+    cli -->|"omm <class> <field>"| class_field["Class-Field Command\nsrc/commands/class-field.ts"]
+    class_field -->|"stdin (-) or inline"| read_content["Read Content\nstdin piped or args"]
+    class_field -->|"write field"| store["Store Write\nsrc/lib/store.ts"]
+    class_field -->|"validate"| types["Field Validation\nsrc/types.ts"]
+    global -->|"reads"| store
+    cloud_cmds -->|"auth + HTTP"| cloud_lib["Cloud Client\nsrc/lib/cloud.ts"]

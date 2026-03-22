@@ -1,0 +1,83 @@
+import http from 'node:http';
+import { execSync } from 'node:child_process';
+import { getApiUrl, saveToken } from '../lib/cloud.js';
+
+function findOpenPort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const srv = http.createServer();
+    srv.listen(0, () => {
+      const addr = srv.address();
+      if (addr && typeof addr === 'object') {
+        const port = addr.port;
+        srv.close(() => resolve(port));
+      } else {
+        reject(new Error('Could not find open port'));
+      }
+    });
+  });
+}
+
+export async function commandLogin(): Promise<void> {
+  const apiUrl = getApiUrl();
+  const port = await findOpenPort();
+  const callbackUrl = `http://localhost:${port}/callback`;
+
+  const tokenPromise = new Promise<string>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      server.close();
+      reject(new Error('Login timed out (60s). Try again.'));
+    }, 60_000);
+
+    const server = http.createServer((req, res) => {
+      const url = new URL(req.url || '/', `http://localhost:${port}`);
+
+      if (url.pathname === '/callback') {
+        const token = url.searchParams.get('token');
+
+        // Send response page
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`
+          <html><body style="background:#1e1e2e;color:#a6e3a1;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+            <div style="text-align:center">
+              <h2>${token ? 'Login successful!' : 'Login failed.'}</h2>
+              <p style="color:#a6adc8">${token ? 'You can close this tab and return to your terminal.' : 'No token received.'}</p>
+            </div>
+          </body></html>
+        `);
+
+        clearTimeout(timeout);
+        server.close();
+
+        if (token) {
+          resolve(token);
+        } else {
+          reject(new Error('No token received'));
+        }
+      } else {
+        res.writeHead(404);
+        res.end('Not found');
+      }
+    });
+
+    server.listen(port);
+  });
+
+  const authUrl = `${apiUrl}/auth/cli?callback=${encodeURIComponent(callbackUrl)}`;
+  process.stderr.write(`Opening browser for login...\n`);
+  try {
+    execSync(`open "${authUrl}"`, { stdio: 'ignore' });
+  } catch {
+    process.stderr.write(`Could not open browser. Visit:\n${authUrl}\n`);
+  }
+  process.stderr.write(`Waiting for authentication...\n`);
+
+  try {
+    const token = await tokenPromise;
+    saveToken(token);
+    process.stderr.write('Logged in successfully\n');
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`error: ${msg}\n`);
+    process.exit(1);
+  }
+}

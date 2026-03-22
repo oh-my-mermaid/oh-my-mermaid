@@ -1,0 +1,1 @@
+The browser-side viewer in viewer.html: sidebar navigation, Mermaid diagram rendering (custom dagre-based engine), and the detail sidebar. Read this if you're modifying how diagrams look or how class navigation works.
