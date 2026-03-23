@@ -1,0 +1,17 @@
+{
+  "name": "oh-my-mermaid",
+  "description": "Turn complex codebases into clear, navigable architecture diagrams",
+  "version": "0.1.3",
+  "author": {
+    "name": "oh-my-mermaid"
+  },
+  "homepage": "https://github.com/oh-my-mermaid/oh-my-mermaid",
+  "repository": "https://github.com/oh-my-mermaid/oh-my-mermaid",
+  "license": "MIT",
+  "keywords": [
+    "architecture",
+    "mermaid",
+    "diagrams",
+    "codebase-visualization"
+  ]
+}

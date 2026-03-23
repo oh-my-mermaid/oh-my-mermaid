@@ -1,7 +1,7 @@
-import { ensureOmm, deleteClass } from '../lib/store.js';
+import { ensureOmmForRead, deleteClass } from '../lib/store.js';
 
 export function commandDelete(className: string): void {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
   if (deleteClass(className)) {
     process.stderr.write(`deleted class '${className}'\n`);
   } else {

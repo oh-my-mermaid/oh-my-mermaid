@@ -2,10 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
 import { getToken, apiRequest } from '../lib/cloud.js';
-import { ensureOmm, getOmmDir } from '../lib/store.js';
+import { ensureOmmForWrite, getOmmDir } from '../lib/store.js';
 
 export async function commandPull(): Promise<void> {
-  ensureOmm();
+  ensureOmmForWrite();
 
   const token = getToken();
   if (!token) {

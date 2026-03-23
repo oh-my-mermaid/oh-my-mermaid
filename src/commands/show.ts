@@ -1,8 +1,8 @@
 import YAML from 'yaml';
-import { ensureOmm, showClass } from '../lib/store.js';
+import { ensureOmmForRead, showClass } from '../lib/store.js';
 
 export function commandShow(className: string): void {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
   const data = showClass(className);
   if (!data) {
     process.stderr.write(`error: class '${className}' not found\n`);

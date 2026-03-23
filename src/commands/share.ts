@@ -2,14 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
 import { getApiUrl } from '../lib/cloud.js';
-import { ensureOmm, getOmmDir } from '../lib/store.js';
+import { ensureOmmForRead, getOmmDir } from '../lib/store.js';
 
 export function commandShare(): void {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
 
   const configPath = path.join(getOmmDir(), 'config.yaml');
   if (!fs.existsSync(configPath)) {
-    process.stderr.write("error: .omm/config.yaml not found. Run 'omm init' first.\n");
+    process.stderr.write("error: .omm/config.yaml not found. Run /omm-scan in Claude Code first.\n");
     process.exit(1);
   }
 

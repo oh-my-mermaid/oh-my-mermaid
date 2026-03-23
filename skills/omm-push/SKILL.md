@@ -11,7 +11,14 @@ Automate the full workflow of pushing .omm/ architecture docs to the oh-my-merma
 
 ## Prerequisites
 
-The `omm` CLI must be installed (`npm install -g oh-my-mermaid`).
+Ensure the `omm` CLI is available:
+
+```bash
+command -v omm || npm install -g oh-my-mermaid
+```
+
+If the install command fails (permission denied), tell the user:
+"Please run `npm install -g oh-my-mermaid` in your terminal, then try again."
 
 ## Workflow
 

@@ -11,6 +11,7 @@
   "files": [
     "dist/",
     "skills/",
+    ".claude-plugin/",
     "LICENSE"
   ],
   "keywords": [
@@ -27,7 +28,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "sync-version": "node scripts/sync-version.js",
+    "prepublishOnly": "npm run build && npm run sync-version"
   },
   "author": "",
   "license": "MIT",
