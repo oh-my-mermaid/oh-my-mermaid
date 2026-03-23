@@ -16,11 +16,25 @@ export function ommExists(cwd?: string): boolean {
   return fs.existsSync(getOmmDir(cwd));
 }
 
-export function ensureOmm(cwd?: string): void {
+/**
+ * Write commands: auto-create .omm/ if missing (lazy-init).
+ */
+export function ensureOmmForWrite(cwd?: string): void {
   if (!ommExists(cwd)) {
-    process.stderr.write(`error: .omm/ not found. Run 'omm init' first.\n`);
-    process.exit(1);
+    initOmm(cwd);
+    process.stderr.write('Created .omm/ directory. Add to .gitignore if not wanted.\n');
   }
+}
+
+/**
+ * Read commands: return false if .omm/ missing (no auto-create).
+ */
+export function ensureOmmForRead(cwd?: string): boolean {
+  if (!ommExists(cwd)) {
+    process.stderr.write('No .omm/ directory found. Run /omm-scan in Claude Code to generate architecture docs.\n');
+    return false;
+  }
+  return true;
 }
 
 export function isValidField(field: string): field is Field {
@@ -84,6 +98,7 @@ export function readField(className: string, field: Field, cwd?: string): string
 }
 
 export function writeField(className: string, field: Field, content: string, cwd?: string): number {
+  ensureOmmForWrite(cwd);
   const dir = ensureClassDir(className, cwd);
   const filePath = path.join(dir, FIELD_FILES[field]);
 

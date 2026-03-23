@@ -1,4 +1,4 @@
-import { ensureOmm, isValidField, readField, writeField, classExists } from '../lib/store.js';
+import { ensureOmmForRead, isValidField, readField, writeField, classExists } from '../lib/store.js';
 import { VALID_FIELDS, type Field } from '../types.js';
 
 function readStdin(): Promise<string> {
@@ -12,8 +12,6 @@ function readStdin(): Promise<string> {
 }
 
 export async function commandClassField(className: string, field: string, content?: string): Promise<void> {
-  ensureOmm();
-
   if (!isValidField(field)) {
     process.stderr.write(`error: unknown field '${field}'. Valid: ${VALID_FIELDS.join(', ')}\n`);
     process.exit(1);
@@ -23,6 +21,7 @@ export async function commandClassField(className: string, field: string, conten
 
   // Read mode: no content argument
   if (content === undefined) {
+    if (!ensureOmmForRead()) return;
     if (!classExists(className)) {
       process.stderr.write(`error: class '${className}' not found\n`);
       process.exit(1);
@@ -36,7 +35,7 @@ export async function commandClassField(className: string, field: string, conten
     return;
   }
 
-  // Write mode: content is '-' means read from stdin
+  // Write mode: writeField() handles lazy-init internally
   let finalContent: string;
   if (content === '-') {
     finalContent = await readStdin();

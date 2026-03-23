@@ -23,7 +23,7 @@ function printHelp(): void {
 oh-my-mermaid (omm) — Architecture mirror for vibe coding
 
 Usage:
-  omm init                          Initialize .omm/ and install skills
+  omm init                          Initialize .omm/ directory (usually not needed)
   omm list                          List all classes
   omm show <class>                  Show all fields for a class
   omm delete <class>                Delete a class

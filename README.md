@@ -5,7 +5,7 @@
 
 **Turn complex codebases into clear, navigable architecture diagrams with Claude Code.**
 
-> `omm init` → `claude` → `/omm-scan` → done. Your architecture docs write themselves.
+> `claude` → `/omm-scan` → done. Your architecture docs write themselves.
 
 ![omm viewer screenshot](./docs/screenshot.png)
 
@@ -28,6 +28,14 @@ Your code → Claude Code analyzes → .omm/ stores diagrams → Live viewer in 
 
 ## Install
 
+### As Claude Code plugin (recommended)
+
+```
+/plugin install oh-my-mermaid
+```
+
+### As npm CLI
+
 ```bash
 npm install -g oh-my-mermaid
 ```
@@ -35,14 +43,14 @@ npm install -g oh-my-mermaid
 ## Quick Start
 
 ```bash
-# 1. Initialize in your project
+# 1. Launch Claude Code in your project
 cd your-project
-omm init
-
-# 2. Launch Claude Code
 claude
 
-# 3. Scan your architecture (inside Claude Code)
+# 2. Install the plugin (first time only)
+/plugin install oh-my-mermaid
+
+# 3. Scan your architecture
 /omm-scan
 
 # 4. View in browser
@@ -51,7 +59,7 @@ omm serve
 ```
 
 `/omm-scan` makes Claude analyze your code and generate architecture docs in the `.omm/` directory.
-To focus on a specific area, pass a topic: `/omm-scan auth flow`.
+The CLI is auto-installed if needed. To focus on a specific area, pass a topic: `/omm-scan auth flow`.
 
 ## How It Works
 
@@ -94,7 +102,7 @@ Click `@auth-flow` in the viewer to navigate to that class.
 ### Basics
 
 ```bash
-omm init                      # Initialize .omm/ and install Claude Code skills
+omm init                      # Initialize .omm/ directory (usually not needed)
 omm list                      # List all classes
 omm show <class>              # Display all fields for a class
 omm status                    # Overview of all classes

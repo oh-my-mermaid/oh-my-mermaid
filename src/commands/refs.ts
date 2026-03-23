@@ -1,8 +1,8 @@
-import { ensureOmm, classExists } from '../lib/store.js';
+import { ensureOmmForRead, classExists } from '../lib/store.js';
 import { getIncomingRefs, getOutgoingRefs } from '../lib/refs.js';
 
 export function commandRefs(className: string, reverse: boolean): void {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
 
   if (!classExists(className)) {
     process.stderr.write(`error: class '${className}' not found\n`);

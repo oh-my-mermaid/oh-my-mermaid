@@ -13,7 +13,14 @@ Operates in two modes based on whether arguments are provided.
 
 ## Prerequisites
 
-The `omm` CLI must be installed (`npm install -g oh-my-mermaid` or available via npx).
+Ensure the `omm` CLI is available:
+
+```bash
+command -v omm || npm install -g oh-my-mermaid
+```
+
+If the install command fails (permission denied), tell the user:
+"Please run `npm install -g oh-my-mermaid` in your terminal, then try again."
 
 ## Mode Detection
 
@@ -24,15 +31,7 @@ The `omm` CLI must be installed (`npm install -g oh-my-mermaid` or available via
 
 ## A. Full Scan Mode (no arguments)
 
-### Step 1: Initialize
-
-If `.omm/` does not exist, run `omm init` first.
-
-```bash
-omm init
-```
-
-### Step 2: Check Existing State
+### Step 1: Check Existing State
 
 ```bash
 omm list
@@ -44,7 +43,7 @@ omm <class> description
 omm <class> diagram
 ```
 
-### Step 3: Explore the Codebase
+### Step 2: Explore the Codebase
 
 Use Glob and Read to understand the project:
 - Read `package.json`, `tsconfig.json`, or equivalent config files
@@ -52,7 +51,7 @@ Use Glob and Read to understand the project:
 - Read key entry points (main, index, app files)
 - Look for route definitions, service layers, database connections
 
-### Step 4: Generate/Update Classes
+### Step 3: Generate/Update Classes
 
 **First run (no existing classes):** Create classes based on what a person new to this codebase most needs to understand. Always start with `overall-architecture`, then add perspectives from this list based on what exists in the code:
 
@@ -111,7 +110,7 @@ omm <class> note - <<'EOF'
 EOF
 ```
 
-### Step 5: Cross-References
+### Step 4: Cross-References
 
 Use `@class-name` convention for nodes that represent another class. For `@ref` nodes, do NOT add a path as the second line — instead, use a plain concept label:
 
@@ -124,7 +123,7 @@ graph LR
 
 The `@` prefix tells the viewer this node is a drill-down into another class. Adding a file path would be misleading since it represents a whole sub-diagram, not a single file.
 
-### Step 6: Summarize
+### Step 5: Summarize
 
 Report what was created/updated and suggest `omm serve` to view.
 

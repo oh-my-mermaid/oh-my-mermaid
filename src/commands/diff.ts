@@ -1,8 +1,8 @@
-import { ensureOmm, readField, readMeta, classExists } from '../lib/store.js';
+import { ensureOmmForRead, readField, readMeta, classExists } from '../lib/store.js';
 import { diffMermaid, formatDiff } from '../lib/diff.js';
 
 export function commandDiff(className: string): void {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
 
   if (!classExists(className)) {
     process.stderr.write(`error: class '${className}' not found\n`);

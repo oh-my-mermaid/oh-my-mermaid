@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import YAML from 'yaml';
 import { getToken, getApiUrl, apiRequest } from '../lib/cloud.js';
-import { ensureOmm, getOmmDir } from '../lib/store.js';
+import { ensureOmmForRead, getOmmDir } from '../lib/store.js';
 
 function walkDir(dir: string, base: string): Array<{ path: string; content: string }> {
   const files: Array<{ path: string; content: string }> = [];
@@ -32,7 +32,7 @@ function getGitCommit(): string | undefined {
 }
 
 export async function commandPush(): Promise<void> {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
 
   const token = getToken();
   if (!token) {

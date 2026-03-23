@@ -1,7 +1,7 @@
-import { ensureOmm, listClasses, readMeta } from '../lib/store.js';
+import { ensureOmmForRead, listClasses, readMeta } from '../lib/store.js';
 
 export function commandStatus(): void {
-  ensureOmm();
+  if (!ensureOmmForRead()) return;
   const classes = listClasses();
 
   if (classes.length === 0) {
