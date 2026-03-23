@@ -2,11 +2,24 @@ import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
 import { ensureOmmForWrite, getOmmDir } from '../lib/store.js';
+import { getDefaultOrg } from '../lib/cloud.js';
 
-export function commandLink(slug?: string): void {
+export function commandLink(input?: string): void {
   ensureOmmForWrite();
 
-  const resolvedSlug = slug || path.basename(process.cwd());
+  let orgSlug: string | undefined;
+  let projectSlug: string;
+
+  if (input && input.includes('/')) {
+    // Format: org_slug/project_slug
+    const parts = input.split('/');
+    orgSlug = parts[0];
+    projectSlug = parts[1];
+  } else {
+    // Just project slug — use default org
+    projectSlug = input || path.basename(process.cwd());
+    orgSlug = getDefaultOrg() ?? undefined;
+  }
 
   const configPath = path.join(getOmmDir(), 'config.yaml');
   let config: Record<string, unknown> = {};
@@ -15,11 +28,17 @@ export function commandLink(slug?: string): void {
     config = (YAML.parse(raw) as Record<string, unknown>) || {};
   }
 
-  config.cloud = {
+  const cloudConfig: Record<string, unknown> = {
     ...(config.cloud as Record<string, unknown> | undefined),
-    project_slug: resolvedSlug,
+    project_slug: projectSlug,
   };
+  if (orgSlug) {
+    cloudConfig.org_slug = orgSlug;
+  }
+  config.cloud = cloudConfig;
 
   fs.writeFileSync(configPath, YAML.stringify(config), 'utf-8');
-  process.stderr.write(`Linked to ${resolvedSlug}. Run 'omm push' to upload.\n`);
+
+  const display = orgSlug ? `${orgSlug}/${projectSlug}` : projectSlug;
+  process.stderr.write(`Linked to ${display}. Run 'omm push' to upload.\n`);
 }

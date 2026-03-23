@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { execSync } from 'node:child_process';
-import { getApiUrl, saveToken } from '../lib/cloud.js';
+import { getApiUrl, saveToken, saveHandle } from '../lib/cloud.js';
 
 function findOpenPort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -22,7 +22,7 @@ export async function commandLogin(): Promise<void> {
   const port = await findOpenPort();
   const callbackUrl = `http://localhost:${port}/callback`;
 
-  const tokenPromise = new Promise<string>((resolve, reject) => {
+  const tokenPromise = new Promise<{ token: string; handle?: string }>((resolve, reject) => {
     const timeout = setTimeout(() => {
       server.close();
       reject(new Error('Login timed out (60s). Try again.'));
@@ -33,8 +33,8 @@ export async function commandLogin(): Promise<void> {
 
       if (url.pathname === '/callback') {
         const token = url.searchParams.get('token');
+        const handle = url.searchParams.get('handle');
 
-        // Send response page
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(`
           <html><body style="background:#1e1e2e;color:#a6e3a1;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
@@ -49,7 +49,7 @@ export async function commandLogin(): Promise<void> {
         server.close();
 
         if (token) {
-          resolve(token);
+          resolve({ token, handle: handle ?? undefined });
         } else {
           reject(new Error('No token received'));
         }
@@ -72,9 +72,12 @@ export async function commandLogin(): Promise<void> {
   process.stderr.write(`Waiting for authentication...\n`);
 
   try {
-    const token = await tokenPromise;
+    const { token, handle } = await tokenPromise;
     saveToken(token);
-    process.stderr.write('Logged in successfully\n');
+    if (handle) {
+      saveHandle(handle);
+    }
+    process.stderr.write(`Logged in successfully${handle ? ` as @${handle}` : ''}\n`);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     process.stderr.write(`error: ${msg}\n`);
