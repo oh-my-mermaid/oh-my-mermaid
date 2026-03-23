@@ -8,7 +8,7 @@ import { commandDelete } from './commands/delete.js';
 import { commandStatus } from './commands/status.js';
 import { commandDiff } from './commands/diff.js';
 import { commandRefs } from './commands/refs.js';
-import { commandServe } from './commands/serve.js';
+import { commandView } from './commands/view.js';
 import { commandLogin } from './commands/login.js';
 import { commandLogout } from './commands/logout.js';
 import { commandPush } from './commands/push.js';
@@ -17,7 +17,7 @@ import { commandLink } from './commands/link.js';
 import { commandShare } from './commands/share.js';
 import { commandSetup } from './commands/setup.js';
 
-const GLOBAL_COMMANDS = ['init', 'setup', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'serve', 'login', 'logout', 'push', 'pull', 'link', 'share', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -35,7 +35,7 @@ Usage:
   omm diff <class>                  Compare current vs previous diagram
   omm refs <class>                  Show classes that reference this class
   omm refs --reverse <class>        Show classes this class references
-  omm serve [--port <port>]         Start web viewer (default: 3000)
+  omm view [--port <port>]         Start web viewer (default: 3000)
 
   omm <class> <field>               Read a field (stdout)
   omm <class> <field> <content>     Write a field
@@ -120,7 +120,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    case 'serve': {
+    case 'view': {
       let port = 3000;
       if (args[1] === '--port' && args[2]) {
         port = parseInt(args[2], 10);
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
           process.exit(1);
         }
       }
-      commandServe(port);
+      commandView(port);
       return;
     }
 

@@ -125,7 +125,7 @@ The `@` prefix tells the viewer this node is a drill-down into another class. Ad
 
 ### Step 5: Summarize
 
-Report what was created/updated and suggest `omm serve` to view.
+Report what was created/updated and suggest `omm view` to view.
 
 ---
 

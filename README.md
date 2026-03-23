@@ -49,7 +49,7 @@ claude   # or codex, cursor, etc.
 /omm-scan
 
 # 4. View in browser
-omm serve
+omm view
 # → http://localhost:3000
 ```
 
@@ -126,8 +126,8 @@ omm refs --reverse <class>    # Show classes this one references
 ### Local viewer
 
 ```bash
-omm serve                    # Start live viewer at http://localhost:3000
-omm serve --port 8080        # Custom port
+omm view                    # Start live viewer at http://localhost:3000
+omm view --port 8080        # Custom port
 ```
 
 Auto-refreshes in the browser when files change (via SSE).
