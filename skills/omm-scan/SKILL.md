@@ -112,20 +112,20 @@ EOF
 
 ### Step 4: Cross-References
 
-Use `@class-name` convention for nodes that represent another class. For `@ref` nodes, do NOT add a path as the second line — instead, use a plain concept label:
+Use `@class-name` in the label to mark a node as a drill-down into another class. Use a short node ID and put `@class-name` as the label:
 
 ```mermaid
 graph LR
     client["Browser Client\nsrc/client/"]
-    client -->|"HTTP request"| @api-layer["API Layer"]
-    client -->|"authenticate"| @auth-flow["Auth Service"]
+    client -->|"HTTP request"| api["@api-layer"]
+    client -->|"authenticate"| auth["@auth-flow"]
 ```
 
-The `@` prefix tells the viewer this node is a drill-down into another class. Adding a file path would be misleading since it represents a whole sub-diagram, not a single file.
+The viewer detects `@` in the label and renders the node as an expandable sub-group. Do NOT add a file path to `@ref` nodes — they represent a whole sub-diagram, not a single file.
 
 ### Step 5: Summarize
 
-Report what was created/updated and suggest `omm serve` to view.
+Report what was created/updated and suggest `omm view` to view.
 
 ---
 
@@ -155,8 +155,8 @@ This is the key differentiator from full scan:
 
 1. Run `omm list` to get existing classes
 2. For each existing class, run `omm <class> diagram` to read its diagram
-3. Check if the new class is already referenced as `@new-class`
-4. If NOT referenced, find the logical parent (usually `overall-architecture`) and update its diagram to include `@new-class[Label]` node
+3. Check if the new class is already referenced as `@new-class` in a label
+4. If NOT referenced, find the logical parent (usually `overall-architecture`) and update its diagram to include a node with `@new-class` as the label
 
 Example: After creating `auth-flow`, update `overall-architecture`:
 ```bash
@@ -165,7 +165,7 @@ omm overall-architecture diagram
 # Add @auth-flow reference and rewrite
 omm overall-architecture diagram - <<'MERMAID'
 graph LR
-    Client --> @auth-flow[Auth Service]
+    Client --> auth["@auth-flow"]
     ...existing nodes...
 MERMAID
 ```
@@ -191,14 +191,14 @@ When analyzing the codebase, identify sub-systems that are complex enough to war
 
 **How to nest:**
 1. Create a new class: `omm <child-class> diagram - <<'MERMAID'...MERMAID`
-2. In the parent diagram, use `@child-class[Label]` as the node ID
+2. In the parent diagram, add a node with `@child-class` as the label (e.g. `auth["@auth-flow"]`)
 3. Fill all 7 fields for the child class (description, constraint, concern, context, todo, note)
 
 **Example:**
 If `overall-architecture` has an auth subsystem with 8+ nodes:
 - Create `auth-flow` class with its own detailed diagram
-- In `overall-architecture` diagram: `Client --> @auth-flow[Auth Service]`
-- The viewer will render `@auth-flow` as a clickable, expandable sub-group
+- In `overall-architecture` diagram: `Client --> auth["@auth-flow"]`
+- The viewer detects `@` in the label and renders it as an expandable sub-group
 
 ### Edge Labels
 
@@ -268,3 +268,4 @@ The test: if you remove the label, does the reader lose important understanding?
   ```
 
   Do not overuse — if everything has a color, nothing stands out.
+- Do NOT create circular `@`references. A child class must never `@`-reference its parent. If `overall-architecture` has `auth["@auth-flow"]`, then `auth-flow`'s diagram must NOT reference `@overall-architecture`. Use `context.md` to describe the parent relationship instead.

@@ -290,14 +290,19 @@ function parseFlowchart(raw) {
   const nodesMap = new Map(), edges = [], classOf = {};
 
   function cleanLabel(s) { return s.replace(/<br\s*\/?>/gi, '\n').replace(/\\n/g, '\n'); }
+  function refFromLabel(label) {
+    // Detect @class-name at start of label (e.g. "@channel-system" or "@auth-flow\nsome path")
+    const m = label.match(/^@([\w-]+)/);
+    return m ? m[1] : null;
+  }
   function tok(t) {
     t = t.trim();
     let m;
-    m = t.match(/^(@?[\w-]+)\["([^"]+)"\]$/); if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'rect',isRef:m[1].startsWith('@')};
-    m = t.match(/^(@?[\w-]+)\[([^\]]+)\]$/);  if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'rect',isRef:m[1].startsWith('@')};
-    m = t.match(/^(@?[\w-]+)\(\(([^)]+)\)\)$/); if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'stadium',isRef:m[1].startsWith('@')};
-    m = t.match(/^(@?[\w-]+)\(([^)]+)\)$/);   if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'round',isRef:m[1].startsWith('@')};
-    m = t.match(/^(@?[\w-]+)\{([^}]+)\}$/);   if (m) return {id:m[1].replace(/^@/,''),label:cleanLabel(m[2]),shape:'diamond',isRef:m[1].startsWith('@')};
+    m = t.match(/^(@?[\w-]+)\["([^"]+)"\]$/); if (m) { const lbl=cleanLabel(m[2]),r=refFromLabel(lbl),idR=m[1].startsWith('@'); return {id:m[1].replace(/^@/,''),label:lbl,shape:'rect',isRef:idR||!!r,refTarget:r||(idR?m[1].replace(/^@/,''):null)}; }
+    m = t.match(/^(@?[\w-]+)\[([^\]]+)\]$/);  if (m) { const lbl=cleanLabel(m[2]),r=refFromLabel(lbl),idR=m[1].startsWith('@'); return {id:m[1].replace(/^@/,''),label:lbl,shape:'rect',isRef:idR||!!r,refTarget:r||(idR?m[1].replace(/^@/,''):null)}; }
+    m = t.match(/^(@?[\w-]+)\(\(([^)]+)\)\)$/); if (m) { const lbl=cleanLabel(m[2]),r=refFromLabel(lbl),idR=m[1].startsWith('@'); return {id:m[1].replace(/^@/,''),label:lbl,shape:'stadium',isRef:idR||!!r,refTarget:r||(idR?m[1].replace(/^@/,''):null)}; }
+    m = t.match(/^(@?[\w-]+)\(([^)]+)\)$/);   if (m) { const lbl=cleanLabel(m[2]),r=refFromLabel(lbl),idR=m[1].startsWith('@'); return {id:m[1].replace(/^@/,''),label:lbl,shape:'round',isRef:idR||!!r,refTarget:r||(idR?m[1].replace(/^@/,''):null)}; }
+    m = t.match(/^(@?[\w-]+)\{([^}]+)\}$/);   if (m) { const lbl=cleanLabel(m[2]),r=refFromLabel(lbl),idR=m[1].startsWith('@'); return {id:m[1].replace(/^@/,''),label:lbl,shape:'diamond',isRef:idR||!!r,refTarget:r||(idR?m[1].replace(/^@/,''):null)}; }
     if (/^@?[\w-]+$/.test(t)) { const id=t.replace(/^@/,''); return {id,label:id,shape:'rect',isRef:t.startsWith('@')}; }
     return null;
   }
@@ -398,14 +403,16 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
   const nodeDims  = {}; // nodeId -> { width, height }
 
   for (const n of nodes) {
-    const refCls = n.isRef ? n.id : null;
+    const refCls = n.isRef ? (n.refTarget || n.id) : null;
     if (level < maxDepth && refCls && allClasses.includes(refCls) && !seen.has(refCls) && !_expandedGlobal.has(refCls)) {
       _expandedGlobal.add(refCls);
       const sub = renderGroup(refCls, classesData, allClasses, level+1, seen);
       if (sub) {
-        subGroups[n.id] = { cls: refCls, ...sub };
-        // sub-group dims = content + inner padding
-        nodeDims[n.id] = { width: sub.W + 24, height: sub.H + 30 }; // 30 = 16 top label + 14 bottom
+        // Scale down to fit max box. At small scales, edge overflow becomes negligible.
+        const MAX_W = 240, MAX_H = 160, PAD = 12;
+        const fs = Math.min((MAX_W - PAD*2) / sub.W, (MAX_H - PAD*2) / sub.H, 1);
+        subGroups[n.id] = { cls: refCls, ...sub, fitScale: fs };
+        nodeDims[n.id] = { width: sub.W * fs + PAD * 2, height: sub.H * fs + PAD * 2 };
       }
     }
     if (!nodeDims[n.id]) {
@@ -552,16 +559,19 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
       const isRef = n.label.startsWith('@');
       const refSubStroke = th.subStroke;
       const refDash = '';
+      const fs = sg.fitScale;
+      const PAD = 12;
+      const boxW = sg.W * fs + PAD * 2, boxH = sg.H * fs + PAD * 2;
       svg += `<g class="grp-node" onclick="event.stopPropagation();window.__openSb('${safeId}')" data-cls="${safeId}" data-depth="${level+1}" transform="translate(${nx},${ny})">`;
-      svg += `<rect class="grp-border" width="${dim.width}" height="${dim.height}" rx="5"
+      svg += `<rect class="grp-border" width="${r1(boxW)}" height="${r1(boxH)}" rx="5"
         fill="${th.subFill}" stroke="${refSubStroke}" stroke-width="2"/>`;
       const _slW = tw(fmtLabel(sg.cls), '600 9px "Plus Jakarta Sans",Inter,system-ui') + 12;
       svg += `<rect class="grp-label-top grp-label-bg" x="5" y="-7" width="${_slW}" height="14" rx="2" fill="${th.subFill}" opacity="1"/>`;
       svg += `<text class="grp-label-top" x="10" y="2" font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="9" font-weight="600"
         fill="${th.subLabelFill}" letter-spacing="0.05em">${esc(fmtLabel(sg.cls))}</text>`;
-      svg += `<g class="grp-inner" transform="translate(12,18)">${sg.svgContent}</g>`;
+      svg += `<g class="grp-inner" transform="translate(${r1(PAD)},${r1(PAD)}) scale(${r1(fs)})">${sg.svgContent}</g>`;
       svg += `</g>`;
-      labelOverlay += `<text class="grp-label-center" x="${r1(nx + dim.width/2)}" y="${r1(ny + dim.height/2)}" text-anchor="middle" dominant-baseline="central"
+      labelOverlay += `<text class="grp-label-center" x="${r1(nx + boxW/2)}" y="${r1(ny + boxH/2)}" text-anchor="middle" dominant-baseline="central"
         font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="9" font-weight="600" fill="${th.grpLabelCenterFill}" letter-spacing="0.05em">${esc(fmtLabel(sg.cls))}</text>`;
     } else {
       // ── regular node ──
@@ -985,15 +995,24 @@ window.closeSidebar=closeSidebar;
 function buildCanvas(classes, classesData, refsData) {
   _expandedGlobal = new Set(); // reset per render
   // Find top-level classes: those with no incoming @refs from other classes
-  const referenced = new Set();
+  // Build outgoing ref counts to handle circular references
+  const outCount = {}; // cls -> number of outgoing @refs to other classes
+  const inCount = {};  // cls -> number of incoming @refs from other classes
+  for (const cls of classes) { outCount[cls] = 0; inCount[cls] = 0; }
   for (const cls of classes) {
     const diagram = classesData[cls]?.diagram || '';
-    const refs = [...diagram.matchAll(/@([\w-]+)/g)].map(m=>m[1]);
-    refs.forEach(r => { if (classes.includes(r)) referenced.add(r); });
+    const refs = [...new Set([...diagram.matchAll(/@([\w-]+)/g)].map(m=>m[1]).filter(r => classes.includes(r)))];
+    outCount[cls] = refs.length;
+    refs.forEach(r => { inCount[r]++; });
   }
-  const topLevel = classes.filter(c => !referenced.has(c));
-  // Fallback: if everything is referenced, just show all
-  const roots = topLevel.length ? topLevel : classes;
+  // Top-level = not referenced, OR referenced but has more outgoing refs than any referrer (cycle breaker)
+  let topLevel = classes.filter(c => inCount[c] === 0);
+  if (!topLevel.length) {
+    // All classes have incoming refs (circular). Pick the one with most outgoing refs as root.
+    const maxOut = Math.max(...classes.map(c => outCount[c]));
+    topLevel = classes.filter(c => outCount[c] === maxOut);
+  }
+  const roots = topLevel;
 
   // Render each top-level group
   const groups = [];
@@ -1119,17 +1138,22 @@ function buildNavTree() {
   navList.innerHTML = '';
   if (!classes.length) return;
 
-  const referenced = new Set();
+  const navOutCount = {}, navInCount = {};
+  for (const c of classes) { navOutCount[c] = 0; navInCount[c] = 0; }
   for (const name of classes) {
     const out = refsData[name]?.outgoing || [];
-    for (const o of out) {
-      const ref = typeof o === 'string' ? o : (o.target_class || o);
-      if (classes.includes(ref)) referenced.add(ref);
-    }
+    const targets = [...new Set(out.map(o => typeof o === 'string' ? o : (o.target_class || o)).filter(r => classes.includes(r)))];
+    navOutCount[name] = targets.length;
+    targets.forEach(r => { navInCount[r]++; });
   }
 
-  let roots = classes.filter(c => !referenced.has(c));
-  if (roots.length === 0 || roots.length === classes.length) {
+  let roots = classes.filter(c => navInCount[c] === 0);
+  if (roots.length === 0) {
+    // Circular refs — pick class with most outgoing refs as root
+    const maxOut = Math.max(...classes.map(c => navOutCount[c]));
+    roots = classes.filter(c => navOutCount[c] === maxOut);
+  }
+  if (roots.length === classes.length) {
     classes.forEach(c => addNavItem(c, '', true));
     return;
   }
