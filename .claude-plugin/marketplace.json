@@ -1,16 +1,16 @@
 {
-  "version": 1,
   "name": "oh-my-mermaid",
-  "description": "Turn complex codebases into clear, navigable architecture diagrams with Claude Code",
   "owner": {
     "name": "oh-my-mermaid"
   },
   "plugins": [
     {
       "name": "oh-my-mermaid",
-      "description": "Architecture scanner and viewer with Mermaid diagrams",
+      "description": "Turn complex codebases into clear, navigable architecture diagrams with Mermaid",
       "version": "0.1.3",
-      "source": "."
+      "source": "./",
+      "category": "development",
+      "homepage": "https://github.com/oh-my-mermaid/oh-my-mermaid"
     }
   ]
 }

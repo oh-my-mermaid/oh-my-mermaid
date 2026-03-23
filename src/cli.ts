@@ -15,8 +15,9 @@ import { commandPush } from './commands/push.js';
 import { commandPull } from './commands/pull.js';
 import { commandLink } from './commands/link.js';
 import { commandShare } from './commands/share.js';
+import { commandSetup } from './commands/setup.js';
 
-const GLOBAL_COMMANDS = ['init', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'serve', 'login', 'logout', 'push', 'pull', 'link', 'share', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'serve', 'login', 'logout', 'push', 'pull', 'link', 'share', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -24,6 +25,9 @@ oh-my-mermaid (omm) — Architecture mirror for vibe coding
 
 Usage:
   omm init                          Initialize .omm/ directory (usually not needed)
+  omm setup [platform]              Register skills with AI coding tools
+  omm setup --list                  Show detected platforms
+  omm setup --teardown              Unregister from all platforms
   omm list                          List all classes
   omm show <class>                  Show all fields for a class
   omm delete <class>                Delete a class
@@ -63,6 +67,10 @@ async function main(): Promise<void> {
   switch (cmd) {
     case 'init':
       commandInit();
+      return;
+
+    case 'setup':
+      await commandSetup(args.slice(1));
       return;
 
     case 'list':
