@@ -259,7 +259,19 @@ body.light .reg-node:hover .nshape { stroke: #000 !important; }
 
 <script type="module">
 // ── theme ─────────────────────────────────────────────────
-let isDark = localStorage.getItem('omm-theme') !== 'light';
+function safeStorageGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function safeStorageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+let isDark = safeStorageGet('omm-theme') !== 'light';
 function applyTheme() {
   document.body.classList.toggle('light', !isDark);
   const btn = document.getElementById('theme-btn');
@@ -267,7 +279,7 @@ function applyTheme() {
 }
 window.toggleTheme = function() {
   isDark = !isDark;
-  localStorage.setItem('omm-theme', isDark ? 'dark' : 'light');
+  safeStorageSet('omm-theme', isDark ? 'dark' : 'light');
   applyTheme();
   rebuildCanvas();
 };
@@ -1259,13 +1271,20 @@ async function init() {
   });
 }
 
-const sse = new EventSource('/events');
-sse.addEventListener('change', async () => {
-  const sel = selectedCls;
-  await init();
-  if (sel && classes.includes(sel)) window.__openSb(sel);
-});
+function setupLiveReload() {
+  if (!window.EventSource) return;
 
+  try {
+    const sse = new EventSource('/events');
+    sse.addEventListener('change', async () => {
+      const sel = selectedCls;
+      await init();
+      if (sel && classes.includes(sel)) window.__openSb(sel);
+    });
+  } catch {}
+}
+
+setupLiveReload();
 init();
 </script>
 </body>
