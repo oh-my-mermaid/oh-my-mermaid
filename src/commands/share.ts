@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
-import { getApiUrl } from '../lib/cloud.js';
+import { getApiUrl, getDefaultOrg } from '../lib/cloud.js';
 import { ensureOmmForRead, getOmmDir } from '../lib/store.js';
 
 export function commandShare(): void {
@@ -17,13 +17,18 @@ export function commandShare(): void {
   const config = YAML.parse(raw) as Record<string, unknown>;
   const cloud = config.cloud as Record<string, unknown> | undefined;
   const slug = cloud?.project_slug as string | undefined;
+  const orgSlug = (cloud?.org_slug as string | undefined) ?? getDefaultOrg() ?? undefined;
 
   if (!slug) {
     process.stderr.write("error: no project slug set. Run 'omm link' first.\n");
     process.exit(1);
   }
 
-  const viewUrl = `${getApiUrl()}/p/${slug}`;
-  process.stdout.write(`Owner view:  ${viewUrl}\n`);
-  process.stdout.write(`Public share: use the Share button on the dashboard (Pro)\n`);
+  if (!orgSlug) {
+    process.stderr.write("warning: no org set. URL may be incomplete. Run 'omm org switch <slug>' or 'omm link org/project'.\n");
+  }
+  const urlPath = orgSlug ? `/p/${orgSlug}/${slug}` : `/p/${slug}`;
+  const viewUrl = `${getApiUrl()}${urlPath}`;
+  process.stdout.write(`View:         ${viewUrl}\n`);
+  process.stdout.write(`Public share: use the Share button on the dashboard (Personal/Team)\n`);
 }

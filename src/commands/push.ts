@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import YAML from 'yaml';
-import { getToken, getApiUrl, apiRequest } from '../lib/cloud.js';
+import { getToken, getApiUrl, getDefaultOrg, apiRequest } from '../lib/cloud.js';
 import { ensureOmmForRead, getOmmDir } from '../lib/store.js';
 
 function walkDir(dir: string, base: string): Array<{ path: string; content: string }> {
@@ -51,6 +51,7 @@ export async function commandPush(): Promise<void> {
   const config = YAML.parse(raw) as Record<string, unknown>;
   const cloud = config.cloud as Record<string, unknown> | undefined;
   const slug = cloud?.project_slug as string | undefined;
+  const orgSlug = (cloud?.org_slug as string | undefined) ?? getDefaultOrg() ?? undefined;
 
   if (!slug) {
     process.stderr.write("error: no project slug set. Run 'omm link' first.\n");
@@ -60,9 +61,15 @@ export async function commandPush(): Promise<void> {
   const files = walkDir(ommDir, ommDir);
   const git_commit = getGitCommit();
 
-  process.stderr.write(`Pushing ${files.length} files to ${getApiUrl()}/p/${slug}...\n`);
+  const display = orgSlug ? `${orgSlug}/${slug}` : slug;
+  process.stderr.write(`Pushing ${files.length} files to ${getApiUrl()}/p/${display}...\n`);
 
-  const res = await apiRequest('POST', '/api/push', { slug, files, git_commit });
+  const body: Record<string, unknown> = { slug, files, git_commit };
+  if (orgSlug) {
+    body.org_slug = orgSlug;
+  }
+
+  const res = await apiRequest('POST', '/api/push', body);
 
   if (!res.ok) {
     const text = await res.text();
@@ -70,8 +77,8 @@ export async function commandPush(): Promise<void> {
     process.exit(1);
   }
 
-  const data = await res.json() as { uploaded?: number; url?: string };
-  const uploaded = data.uploaded ?? files.length;
-  const url = data.url ?? `${getApiUrl()}/p/${slug}`;
+  const data = await res.json() as { files_uploaded?: number; url?: string };
+  const uploaded = data.files_uploaded ?? files.length;
+  const url = data.url ?? `${getApiUrl()}/dashboard`;
   process.stdout.write(`Uploaded ${uploaded} files. View at: ${url}\n`);
 }

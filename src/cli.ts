@@ -16,8 +16,9 @@ import { commandPull } from './commands/pull.js';
 import { commandLink } from './commands/link.js';
 import { commandShare } from './commands/share.js';
 import { commandSetup } from './commands/setup.js';
+import { commandOrg } from './commands/org.js';
 
-const GLOBAL_COMMANDS = ['init', 'setup', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -44,10 +45,13 @@ Usage:
 Cloud:
   omm login                         Log in to omm.dev
   omm logout                        Log out
-  omm link [slug]                   Link project to a cloud slug
+  omm link [org/slug]                Link project to a cloud slug
   omm push                          Push .omm/ to cloud
   omm pull                          Pull .omm/ from cloud
   omm share                         Print the shareable URL
+  omm org list                      List your organizations
+  omm org switch <slug>             Set default organization
+  omm org members [slug]            View members (opens web)
 
 Fields: description, diagram, constraint, concern, context, todo, note
 `;
@@ -155,6 +159,10 @@ async function main(): Promise<void> {
 
     case 'share':
       commandShare();
+      return;
+
+    case 'org':
+      await commandOrg(args[1], args[2]);
       return;
 
     default:
