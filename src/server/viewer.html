@@ -408,9 +408,11 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
       _expandedGlobal.add(refCls);
       const sub = renderGroup(refCls, classesData, allClasses, level+1, seen);
       if (sub) {
-        subGroups[n.id] = { cls: refCls, ...sub };
-        // sub-group dims = content + inner padding
-        nodeDims[n.id] = { width: sub.W + 24, height: sub.H + 30 }; // 30 = 16 top label + 14 bottom
+        // Scale down to fit max box. At small scales, edge overflow becomes negligible.
+        const MAX_W = 240, MAX_H = 160, PAD = 12;
+        const fs = Math.min((MAX_W - PAD*2) / sub.W, (MAX_H - PAD*2) / sub.H, 1);
+        subGroups[n.id] = { cls: refCls, ...sub, fitScale: fs };
+        nodeDims[n.id] = { width: sub.W * fs + PAD * 2, height: sub.H * fs + PAD * 2 };
       }
     }
     if (!nodeDims[n.id]) {
@@ -557,16 +559,19 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
       const isRef = n.label.startsWith('@');
       const refSubStroke = th.subStroke;
       const refDash = '';
+      const fs = sg.fitScale;
+      const PAD = 12;
+      const boxW = sg.W * fs + PAD * 2, boxH = sg.H * fs + PAD * 2;
       svg += `<g class="grp-node" onclick="event.stopPropagation();window.__openSb('${safeId}')" data-cls="${safeId}" data-depth="${level+1}" transform="translate(${nx},${ny})">`;
-      svg += `<rect class="grp-border" width="${dim.width}" height="${dim.height}" rx="5"
+      svg += `<rect class="grp-border" width="${r1(boxW)}" height="${r1(boxH)}" rx="5"
         fill="${th.subFill}" stroke="${refSubStroke}" stroke-width="2"/>`;
       const _slW = tw(fmtLabel(sg.cls), '600 9px "Plus Jakarta Sans",Inter,system-ui') + 12;
       svg += `<rect class="grp-label-top grp-label-bg" x="5" y="-7" width="${_slW}" height="14" rx="2" fill="${th.subFill}" opacity="1"/>`;
       svg += `<text class="grp-label-top" x="10" y="2" font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="9" font-weight="600"
         fill="${th.subLabelFill}" letter-spacing="0.05em">${esc(fmtLabel(sg.cls))}</text>`;
-      svg += `<g class="grp-inner" transform="translate(12,18)">${sg.svgContent}</g>`;
+      svg += `<g class="grp-inner" transform="translate(${r1(PAD)},${r1(PAD)}) scale(${r1(fs)})">${sg.svgContent}</g>`;
       svg += `</g>`;
-      labelOverlay += `<text class="grp-label-center" x="${r1(nx + dim.width/2)}" y="${r1(ny + dim.height/2)}" text-anchor="middle" dominant-baseline="central"
+      labelOverlay += `<text class="grp-label-center" x="${r1(nx + boxW/2)}" y="${r1(ny + boxH/2)}" text-anchor="middle" dominant-baseline="central"
         font-family="&quot;Plus Jakarta Sans&quot;,Inter,system-ui" font-size="9" font-weight="600" fill="${th.grpLabelCenterFill}" letter-spacing="0.05em">${esc(fmtLabel(sg.cls))}</text>`;
     } else {
       // ── regular node ──
