@@ -3,9 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/oh-my-mermaid)](https://www.npmjs.com/package/oh-my-mermaid)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-**Turn complex codebases into clear, navigable architecture diagrams with Claude Code.**
+**Turn complex codebases into clear, navigable architecture diagrams with AI coding tools.**
 
-> `claude` → `/omm-scan` → done. Your architecture docs write themselves.
+> `omm setup` → `/omm-scan` → done. Your architecture docs write themselves.
 
 ![omm viewer screenshot](./docs/screenshot.png)
 
@@ -15,40 +15,35 @@ Plain Mermaid diagrams are flat — one file, one diagram, no connections betwee
 
 omm structures your architecture as **interconnected classes** that you can drill into. Use `@class-name` references to nest diagrams inside each other, zoom out to see the full picture, or click into a subsystem to focus on the details. Each class carries not just a diagram, but also context, constraints, and concerns — so the *why* behind your architecture lives right next to the *what*.
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) does the heavy lifting: it analyzes your code and generates everything automatically.
+Your AI coding tool does the heavy lifting: it analyzes your code and generates everything automatically.
 
 ```
-Your code → Claude Code analyzes → .omm/ stores diagrams → Live viewer in browser
+Your code → AI analyzes → .omm/ stores diagrams → Live viewer in browser
 ```
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 18+
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`npm install -g @anthropic-ai/claude-code`)
+- An AI coding tool: [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Codex](https://github.com/openai/codex), [Cursor](https://cursor.sh/), or [Antigravity](https://github.com/ArcadeAI/antigravity)
 
 ## Install
 
-### As Claude Code plugin (recommended)
-
-```
-/plugin install oh-my-mermaid
-```
-
-### As npm CLI
-
 ```bash
 npm install -g oh-my-mermaid
+omm setup
 ```
+
+`omm setup` auto-detects installed AI coding tools and registers the `/omm-scan` skill for each. Run `omm setup --list` to see what was detected.
 
 ## Quick Start
 
 ```bash
-# 1. Launch Claude Code in your project
-cd your-project
-claude
+# 1. Install
+npm install -g oh-my-mermaid && omm setup
 
-# 2. Install the plugin (first time only)
-/plugin install oh-my-mermaid
+# 2. Open your AI coding tool in a project
+cd your-project
+claude   # or codex, cursor, etc.
 
 # 3. Scan your architecture
 /omm-scan
@@ -58,8 +53,8 @@ omm serve
 # → http://localhost:3000
 ```
 
-`/omm-scan` makes Claude analyze your code and generate architecture docs in the `.omm/` directory.
-The CLI is auto-installed if needed. To focus on a specific area, pass a topic: `/omm-scan auth flow`.
+`/omm-scan` analyzes your code and generates architecture docs in the `.omm/` directory.
+To focus on a specific area, pass a topic: `/omm-scan auth flow`.
 
 ## How It Works
 
@@ -102,7 +97,8 @@ Click `@auth-flow` in the viewer to navigate to that class.
 ### Basics
 
 ```bash
-omm init                      # Initialize .omm/ directory (usually not needed)
+omm setup                     # Register skills with detected AI tools
+omm setup --list              # Show detected platforms and status
 omm list                      # List all classes
 omm show <class>              # Display all fields for a class
 omm status                    # Overview of all classes
@@ -152,13 +148,23 @@ omm logout                   # Sign out
 
 Or use `/omm-push` inside Claude Code to handle login, link, and push in one step.
 
-## Claude Code Skills
+## AI Coding Tool Skills
 
 | Skill | Description |
 |-------|-------------|
 | `/omm-scan` | Analyze full codebase → auto-generate architecture docs |
 | `/omm-scan [topic]` | Focus on a specific area (e.g. `/omm-scan auth flow`) |
 | `/omm-push` | Login + link + push to cloud in one step |
+
+### Supported Platforms
+
+| Platform | Status | Setup method |
+|----------|--------|--------------|
+| Claude Code | Supported | Plugin marketplace registration |
+| Codex | Supported | Symlink to `~/.agents/skills/` |
+| Cursor | Supported | `.cursor-plugin/` auto-discovery |
+| OpenClaw | Supported | Symlink to `~/.openclaw/skills/` |
+| Antigravity | Supported | Symlink to `~/.gemini/antigravity/skills/` |
 
 ## Development
 
