@@ -12,7 +12,7 @@ export async function commandOrg(subcommand?: string, arg?: string): Promise<voi
       await orgList();
       return;
     case 'switch':
-      orgSwitch(arg);
+      await orgSwitch(arg);
       return;
     case 'members':
       await orgMembers(arg);
@@ -24,18 +24,18 @@ export async function commandOrg(subcommand?: string, arg?: string): Promise<voi
 }
 
 async function orgList(): Promise<void> {
-  const res = await apiRequest('GET', '/api/dashboard');
+  const res = await apiRequest('GET', '/api/cli/orgs');
   if (!res.ok) {
     process.stderr.write(`error: failed to fetch orgs (${res.status})\n`);
     process.exit(1);
   }
 
   const data = await res.json() as {
-    orgs?: Array<{ org: { slug: string; name: string; plan: string; role: string } }>
+    orgs?: Array<{ slug: string; name: string; plan: string; role: string; is_personal: boolean }>
+    handle?: string
   };
 
   const orgs = data.orgs ?? [];
-  const handle = getHandle();
   const defaultOrg = getDefaultOrg();
 
   if (orgs.length === 0) {
@@ -43,21 +43,31 @@ async function orgList(): Promise<void> {
     return;
   }
 
-  for (const { org } of orgs) {
-    const isPersonal = org.slug === handle;
+  for (const org of orgs) {
     const isDefault = org.slug === defaultOrg;
     const marker = isDefault ? '* ' : '  ';
-    const label = isPersonal ? ' (personal)' : '';
+    const label = org.is_personal ? ' (personal)' : '';
     process.stdout.write(`${marker}${org.slug}${label} [${org.plan}] — ${org.role}\n`);
   }
 
   process.stderr.write(`\n* = active org. Use 'omm org switch <slug>' to change.\n`);
 }
 
-function orgSwitch(slug?: string): void {
+async function orgSwitch(slug?: string): Promise<void> {
   if (!slug) {
     process.stderr.write("error: omm org switch <slug>\n");
     process.exit(1);
+  }
+
+  // Validate the org exists and user has access
+  const res = await apiRequest('GET', '/api/cli/orgs');
+  if (res.ok) {
+    const data = await res.json() as { orgs?: Array<{ slug: string }> };
+    const orgs = data.orgs ?? [];
+    if (!orgs.some(o => o.slug === slug)) {
+      process.stderr.write(`error: org '${slug}' not found or you don't have access.\n`);
+      process.exit(1);
+    }
   }
 
   saveDefaultOrg(slug);

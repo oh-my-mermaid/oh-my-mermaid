@@ -79,6 +79,6 @@ export async function commandPush(): Promise<void> {
 
   const data = await res.json() as { files_uploaded?: number; url?: string };
   const uploaded = data.files_uploaded ?? files.length;
-  const url = data.url ?? `${getApiUrl()}/p/${display}`;
+  const url = data.url ?? `${getApiUrl()}/dashboard`;
   process.stdout.write(`Uploaded ${uploaded} files. View at: ${url}\n`);
 }

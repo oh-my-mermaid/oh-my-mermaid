@@ -24,8 +24,11 @@ export function commandShare(): void {
     process.exit(1);
   }
 
+  if (!orgSlug) {
+    process.stderr.write("warning: no org set. URL may be incomplete. Run 'omm org switch <slug>' or 'omm link org/project'.\n");
+  }
   const urlPath = orgSlug ? `/p/${orgSlug}/${slug}` : `/p/${slug}`;
   const viewUrl = `${getApiUrl()}${urlPath}`;
   process.stdout.write(`View:         ${viewUrl}\n`);
-  process.stdout.write(`Public share: use the Share button on the dashboard (Pro/Team)\n`);
+  process.stdout.write(`Public share: use the Share button on the dashboard (Personal/Team)\n`);
 }

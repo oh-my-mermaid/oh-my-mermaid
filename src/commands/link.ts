@@ -13,6 +13,10 @@ export function commandLink(input?: string): void {
   if (input && input.includes('/')) {
     // Format: org_slug/project_slug
     const parts = input.split('/');
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      process.stderr.write("error: format must be 'org_slug/project_slug'\n");
+      process.exit(1);
+    }
     orgSlug = parts[0];
     projectSlug = parts[1];
   } else {

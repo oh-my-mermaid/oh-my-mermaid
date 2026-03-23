@@ -34,7 +34,7 @@ function writeCredentials(creds: Credentials): void {
   if (!fs.existsSync(CREDENTIALS_DIR)) {
     fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
   }
-  fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(creds, null, 2), 'utf-8');
+  fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(creds, null, 2), { encoding: 'utf-8', mode: 0o600 });
 }
 
 export function getToken(): string | null {
@@ -71,9 +71,9 @@ export function saveDefaultOrg(orgSlug: string): void {
 }
 
 export function deleteToken(): void {
-  if (fs.existsSync(CREDENTIALS_FILE)) {
-    fs.unlinkSync(CREDENTIALS_FILE);
-  }
+  const creds = readCredentials();
+  delete creds.token;
+  writeCredentials(creds);
 }
 
 export async function apiRequest(
