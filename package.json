@@ -29,6 +29,9 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "sync-version": "node scripts/sync-version.js",
+    "preversion": "npm run build && npm test",
+    "version": "npm run sync-version && git add -A",
+    "postversion": "git push && git push --tags",
     "prepublishOnly": "npm run build && npm run sync-version"
   },
   "author": "",
