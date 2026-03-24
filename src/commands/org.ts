@@ -1,4 +1,4 @@
-import { getToken, getHandle, getDefaultOrg, saveDefaultOrg, apiRequest } from '../lib/cloud.js';
+import { getToken, getDefaultOrg, saveDefaultOrg, saveHandle, apiRequest } from '../lib/cloud.js';
 
 export async function commandOrg(subcommand?: string, arg?: string): Promise<void> {
   const token = getToken();
@@ -35,6 +35,10 @@ async function orgList(): Promise<void> {
     handle?: string
   };
 
+  if (data.handle) {
+    saveHandle(data.handle);
+  }
+
   const orgs = data.orgs ?? [];
   const defaultOrg = getDefaultOrg();
 
@@ -62,7 +66,10 @@ async function orgSwitch(slug?: string): Promise<void> {
   // Validate the org exists and user has access
   const res = await apiRequest('GET', '/api/cli/orgs');
   if (res.ok) {
-    const data = await res.json() as { orgs?: Array<{ slug: string }> };
+    const data = await res.json() as { orgs?: Array<{ slug: string }>; handle?: string };
+    if (data.handle) {
+      saveHandle(data.handle);
+    }
     const orgs = data.orgs ?? [];
     if (!orgs.some(o => o.slug === slug)) {
       process.stderr.write(`error: org '${slug}' not found or you don't have access.\n`);
