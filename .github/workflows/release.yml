@@ -46,6 +46,19 @@ jobs:
           npm run build
           npm run sync-version
 
+      - name: Commit-back synced manifests
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json
+          if git diff --cached --quiet; then
+            echo "Manifests already in sync."
+          else
+            git commit -m "chore: sync plugin manifests to v${{ steps.version.outputs.new }}"
+            git push
+          fi
+
       - name: Create git tag and GitHub release
         if: steps.version.outputs.changed == 'true'
         env:

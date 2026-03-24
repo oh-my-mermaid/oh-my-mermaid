@@ -1,0 +1,35 @@
+name: Check version sync
+
+on:
+  pull_request:
+    paths: [package.json]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify manifests match package.json version
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          PLUGIN=$(node -p "require('./.claude-plugin/plugin.json').version")
+          MARKET=$(node -p "require('./.claude-plugin/marketplace.json').plugins[0].version")
+
+          FAIL=0
+          if [ "$PKG" != "$PLUGIN" ]; then
+            echo "::error::plugin.json version ($PLUGIN) != package.json ($PKG)"
+            FAIL=1
+          fi
+          if [ "$PKG" != "$MARKET" ]; then
+            echo "::error::marketplace.json version ($MARKET) != package.json ($PKG)"
+            FAIL=1
+          fi
+
+          if [ "$FAIL" = "1" ]; then
+            echo ""
+            echo "Run: npm run sync-version"
+            exit 1
+          fi
+
+          echo "All versions in sync: $PKG ✓"
