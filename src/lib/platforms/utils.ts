@@ -11,8 +11,9 @@ const __dirname = path.dirname(__filename);
  */
 export function getSkillsSource(): string | null {
   const candidates = [
-    path.join(__dirname, '..', '..', 'skills'),          // from dist/lib/platforms/
-    path.join(__dirname, '..', '..', '..', 'skills'),     // from src/lib/platforms/
+    path.join(__dirname, '..', 'skills'),                  // from dist/ (flat build via tsup)
+    path.join(__dirname, '..', '..', 'skills'),            // from dist/lib/platforms/
+    path.join(__dirname, '..', '..', '..', 'skills'),      // from src/lib/platforms/
   ];
 
   for (const candidate of candidates) {
