@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import type { Platform } from './types.js';
-import { getSkillsSource } from './utils.js';
+import { getSkillsSource, getPackageVersion } from './utils.js';
 
 const PLUGIN_DIR = '.cursor-plugin';
 const PLUGIN_FILE = 'plugin.json';
@@ -44,7 +44,7 @@ export const cursor: Platform = {
       name: 'oh-my-mermaid',
       displayName: 'oh-my-mermaid',
       description: 'Turn complex codebases into clear, navigable architecture diagrams',
-      version: '0.1.3',
+      version: getPackageVersion() || '0.0.0',
       author: { name: 'oh-my-mermaid' },
       homepage: 'https://github.com/oh-my-mermaid/oh-my-mermaid',
       license: 'MIT',
