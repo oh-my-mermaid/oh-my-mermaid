@@ -1,0 +1,101 @@
+name: Release to npm
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Check if version changed
+        id: version
+        run: |
+          NEW=$(node -p "require('./package.json').version")
+          OLD=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" != "$OLD" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if version unchanged
+        if: steps.version.outputs.changed != 'true'
+        run: echo "Version unchanged (${{ steps.version.outputs.old }}), skipping release."
+
+      - name: Install, test, build, sync
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          npm ci
+          npm test
+          npm run build
+          npm run sync-version
+          npm run check-version-sync
+          git diff --exit-code -- .claude-plugin/plugin.json .claude-plugin/marketplace.json package-lock.json
+
+      - name: Detect existing release artifacts
+        if: steps.version.outputs.changed == 'true'
+        id: release_state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.new }}"
+          TAG="v$VERSION"
+
+          if npm view "oh-my-mermaid@$VERSION" version >/dev/null 2>&1; then
+            echo "npm_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true' && steps.release_state.outputs.npm_published != 'true'
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create git tag
+        if: steps.version.outputs.changed == 'true' && steps.release_state.outputs.tag_exists != 'true'
+        run: |
+          TAG="v${{ steps.version.outputs.new }}"
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub release
+        if: steps.version.outputs.changed == 'true' && steps.release_state.outputs.release_exists != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.version.outputs.new }}"
+          gh release create "$TAG" --generate-notes --title "$TAG"

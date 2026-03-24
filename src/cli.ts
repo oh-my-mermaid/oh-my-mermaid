@@ -16,9 +16,10 @@ import { commandPull } from './commands/pull.js';
 import { commandLink } from './commands/link.js';
 import { commandShare } from './commands/share.js';
 import { commandSetup } from './commands/setup.js';
+import { commandUpdate } from './commands/update.js';
 import { commandOrg } from './commands/org.js';
 
-const GLOBAL_COMMANDS = ['init', 'setup', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -29,6 +30,7 @@ Usage:
   omm setup [platform]              Register skills with AI coding tools
   omm setup --list                  Show detected platforms
   omm setup --teardown              Unregister from all platforms
+  omm update                        Update CLI + plugins to latest version
   omm list                          List all classes
   omm show <class>                  Show all fields for a class
   omm delete <class>                Delete a class
@@ -75,6 +77,10 @@ async function main(): Promise<void> {
 
     case 'setup':
       await commandSetup(args.slice(1));
+      return;
+
+    case 'update':
+      await commandUpdate();
       return;
 
     case 'list':

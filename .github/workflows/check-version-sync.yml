@@ -1,0 +1,23 @@
+name: Check version sync
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - .claude-plugin/plugin.json
+      - .claude-plugin/marketplace.json
+      - scripts/sync-version.js
+      - scripts/check-version-sync.js
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify manifests match package.json version
+        run: npm run check-version-sync
