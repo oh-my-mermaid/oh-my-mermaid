@@ -4,7 +4,7 @@
   "description": "Architecture mirror for vibe coding — CLI + Claude Code skills",
   "type": "module",
   "bin": {
-    "omm": "./dist/cli.js"
+    "omm": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,6 +14,14 @@
     ".claude-plugin/",
     "LICENSE"
   ],
+  "homepage": "https://github.com/oh-my-mermaid/oh-my-mermaid",
+  "bugs": {
+    "url": "https://github.com/oh-my-mermaid/oh-my-mermaid/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oh-my-mermaid/oh-my-mermaid.git"
+  },
   "keywords": [
     "mermaid",
     "architecture",
