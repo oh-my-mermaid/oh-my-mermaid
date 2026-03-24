@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import type { Platform } from './types.js';
-import { getSkillsSource, getPackageVersion } from './utils.js';
+import { getSkillsSource, getAgentsSource, getPackageVersion } from './utils.js';
 
 const PLUGIN_DIR = '.cursor-plugin';
 const PLUGIN_FILE = 'plugin.json';
@@ -20,6 +20,20 @@ function getInstalledVersion(): string | null {
     return typeof json.version === 'string' ? json.version : null;
   } catch {
     return null;
+  }
+}
+
+/** Recursively copy a directory */
+function copyDirSync(src: string, dest: string): void {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
   }
 }
 
@@ -56,7 +70,16 @@ export const cursor: Platform = {
     const pluginDir = path.join(getCwd(), PLUGIN_DIR);
     fs.mkdirSync(pluginDir, { recursive: true });
 
-    const manifest = {
+    // Copy skills into .cursor-plugin/skills/
+    const skillsDest = path.join(pluginDir, 'skills');
+    if (fs.existsSync(skillsDest)) {
+      fs.rmSync(skillsDest, { recursive: true });
+    }
+    copyDirSync(skillsSource, skillsDest);
+
+    // Copy agents into .cursor-plugin/agents/ (if available)
+    const agentsSource = getAgentsSource();
+    const manifest: Record<string, unknown> = {
       name: 'oh-my-mermaid',
       displayName: 'oh-my-mermaid',
       description: 'Turn complex codebases into clear, navigable architecture diagrams',
@@ -64,14 +87,23 @@ export const cursor: Platform = {
       author: { name: 'oh-my-mermaid' },
       homepage: 'https://github.com/oh-my-mermaid/oh-my-mermaid',
       license: 'MIT',
-      skills: skillsSource,
+      skills: `./${PLUGIN_DIR}/skills/`,
     };
+
+    if (agentsSource) {
+      const agentsDest = path.join(pluginDir, 'agents');
+      if (fs.existsSync(agentsDest)) {
+        fs.rmSync(agentsDest, { recursive: true });
+      }
+      copyDirSync(agentsSource, agentsDest);
+      manifest.agents = `./${PLUGIN_DIR}/agents/`;
+    }
 
     fs.writeFileSync(
       path.join(pluginDir, PLUGIN_FILE),
       JSON.stringify(manifest, null, 2) + '\n',
     );
-    process.stderr.write(`  Created ${PLUGIN_DIR}/${PLUGIN_FILE} in project\n`);
+    process.stderr.write(`  Created ${PLUGIN_DIR}/${PLUGIN_FILE} with skills in project\n`);
   },
 
   teardown(): void {
