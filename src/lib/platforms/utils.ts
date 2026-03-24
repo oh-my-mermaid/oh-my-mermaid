@@ -23,3 +23,27 @@ export function getSkillsSource(): string | null {
   }
   return null;
 }
+
+/**
+ * Read the current package version from plugin.json or package.json.
+ * Works from both dist/ (production) and src/lib/platforms/ (dev).
+ */
+export function getPackageVersion(): string | null {
+  const candidates = [
+    path.join(__dirname, '..', '.claude-plugin', 'plugin.json'),       // from dist/
+    path.join(__dirname, '..', '..', '..', '.claude-plugin', 'plugin.json'), // from src/lib/platforms/
+    path.join(__dirname, '..', 'package.json'),                        // from dist/
+    path.join(__dirname, '..', '..', '..', 'package.json'),            // from src/lib/platforms/
+  ];
+
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    if (fs.existsSync(resolved)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(resolved, 'utf-8'));
+        if (data.version) return data.version;
+      } catch { /* ignore */ }
+    }
+  }
+  return null;
+}
