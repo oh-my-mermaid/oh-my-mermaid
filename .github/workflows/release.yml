@@ -38,22 +38,7 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Skip if version unchanged
-        if: steps.version.outputs.changed != 'true'
-        run: echo "Version unchanged (${{ steps.version.outputs.old }}), skipping release."
-
-      - name: Install, test, build, sync
-        if: steps.version.outputs.changed == 'true'
-        run: |
-          npm ci
-          npm test
-          npm run build
-          npm run sync-version
-          npm run check-version-sync
-          git diff --exit-code -- .claude-plugin/plugin.json .claude-plugin/marketplace.json package-lock.json
-
       - name: Detect existing release artifacts
-        if: steps.version.outputs.changed == 'true'
         id: release_state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,21 +64,50 @@ jobs:
             echo "release_exists=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Decide whether release should run
+        id: release_gate
+        env:
+          RELEASE_CURRENT_VERSION: ${{ steps.version.outputs.new }}
+          RELEASE_PREVIOUS_VERSION: ${{ steps.version.outputs.old }}
+          RELEASE_NPM_PUBLISHED: ${{ steps.release_state.outputs.npm_published }}
+          RELEASE_TAG_EXISTS: ${{ steps.release_state.outputs.tag_exists }}
+          RELEASE_GITHUB_RELEASE_EXISTS: ${{ steps.release_state.outputs.release_exists }}
+        run: |
+          DECISION=$(node scripts/release-decision.js)
+          echo "$DECISION"
+          echo "changed=$(echo "$DECISION" | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).changed")" >> "$GITHUB_OUTPUT"
+          echo "should_release=$(echo "$DECISION" | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).shouldRelease")" >> "$GITHUB_OUTPUT"
+          echo "reason=$(echo "$DECISION" | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).reason")" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if release artifacts are already complete
+        if: steps.release_gate.outputs.should_release != 'true'
+        run: echo "Skipping release: ${{ steps.release_gate.outputs.reason }}."
+
+      - name: Install, test, build, sync
+        if: steps.release_gate.outputs.should_release == 'true'
+        run: |
+          npm ci
+          npm test
+          npm run build
+          npm run sync-version
+          npm run check-version-sync
+          git diff --exit-code -- .claude-plugin/plugin.json .claude-plugin/marketplace.json package-lock.json
+
       - name: Publish to npm
-        if: steps.version.outputs.changed == 'true' && steps.release_state.outputs.npm_published != 'true'
+        if: steps.release_gate.outputs.should_release == 'true' && steps.release_state.outputs.npm_published != 'true'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create git tag
-        if: steps.version.outputs.changed == 'true' && steps.release_state.outputs.tag_exists != 'true'
+        if: steps.release_gate.outputs.should_release == 'true' && steps.release_state.outputs.tag_exists != 'true'
         run: |
           TAG="v${{ steps.version.outputs.new }}"
           git tag "$TAG"
           git push origin "$TAG"
 
       - name: Create GitHub release
-        if: steps.version.outputs.changed == 'true' && steps.release_state.outputs.release_exists != 'true'
+        if: steps.release_gate.outputs.should_release == 'true' && steps.release_state.outputs.release_exists != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
