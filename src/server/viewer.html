@@ -405,8 +405,88 @@ function smoothPath(pts) {
 // ── render one class group (recursive) ────────────────────
 // _expandedGlobal prevents same class from expanding in multiple branches
 let _expandedGlobal = new Set();
+let _viewerHierarchy = { roots: [], parentByClass: {}, childrenByClass: {}, outgoingByClass: {} };
 
-function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
+function normalizeOutgoingTargets(refs) {
+  const seen = new Set();
+  const targets = [];
+  for (const entry of refs || []) {
+    const target = typeof entry === 'string' ? entry : entry?.target_class;
+    if (!target || seen.has(target)) continue;
+    seen.add(target);
+    targets.push(target);
+  }
+  return targets;
+}
+
+function pickHierarchyRoots(remaining, outgoingByClass, preferredRoots = []) {
+  const preferred = preferredRoots.filter(name => remaining.includes(name));
+  if (preferred.length) return preferred;
+
+  const remainingSet = new Set(remaining);
+  const inCount = {};
+  remaining.forEach(name => { inCount[name] = 0; });
+  for (const name of remaining) {
+    for (const target of outgoingByClass[name] || []) {
+      if (remainingSet.has(target)) inCount[target]++;
+    }
+  }
+
+  const roots = remaining.filter(name => inCount[name] === 0);
+  if (roots.length) return roots;
+
+  const counts = remaining.map(name => ({
+    name,
+    count: (outgoingByClass[name] || []).filter(target => remainingSet.has(target)).length,
+  }));
+  const maxOut = Math.max(...counts.map(item => item.count));
+  return counts.filter(item => item.count === maxOut).map(item => item.name);
+}
+
+function buildViewerHierarchy(classes, refsData) {
+  const classSet = new Set(classes);
+  const outgoingByClass = {};
+  const parentByClass = {};
+  const childrenByClass = {};
+  const roots = [];
+
+  for (const cls of classes) {
+    outgoingByClass[cls] = normalizeOutgoingTargets(refsData[cls]?.outgoing).filter(target => classSet.has(target));
+    parentByClass[cls] = undefined;
+    childrenByClass[cls] = [];
+  }
+
+  while (true) {
+    const remaining = classes.filter(cls => parentByClass[cls] === undefined);
+    if (!remaining.length) break;
+
+    const preferredRoots = roots.length === 0 && remaining.includes('overall-architecture')
+      ? ['overall-architecture']
+      : [];
+    const nextRoots = pickHierarchyRoots(remaining, outgoingByClass, preferredRoots);
+    const queue = [...nextRoots];
+
+    for (const root of nextRoots) {
+      if (parentByClass[root] !== undefined) continue;
+      parentByClass[root] = null;
+      roots.push(root);
+    }
+
+    while (queue.length) {
+      const current = queue.shift();
+      for (const target of outgoingByClass[current] || []) {
+        if (parentByClass[target] !== undefined) continue;
+        parentByClass[target] = current;
+        childrenByClass[current].push(target);
+        queue.push(target);
+      }
+    }
+  }
+
+  return { roots, parentByClass, childrenByClass, outgoingByClass };
+}
+
+function renderGroup(cls, classesData, allClasses, hierarchy, level, seen = new Set()) {
   if (seen.has(cls)) return null;
   seen = new Set(seen); seen.add(cls);
   let labelOverlay = ''; // centered labels for sub-groups, rendered outside grp-inner
@@ -427,9 +507,15 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
 
   for (const n of nodes) {
     const refCls = n.isRef ? (n.refTarget || n.id) : null;
-    if (level < maxDepth && refCls && allClasses.includes(refCls) && !seen.has(refCls) && !_expandedGlobal.has(refCls)) {
+    const shouldExpand = level < maxDepth
+      && refCls
+      && allClasses.includes(refCls)
+      && !seen.has(refCls)
+      && !_expandedGlobal.has(refCls)
+      && hierarchy.parentByClass?.[refCls] === cls;
+    if (shouldExpand) {
       _expandedGlobal.add(refCls);
-      const sub = renderGroup(refCls, classesData, allClasses, level+1, seen);
+      const sub = renderGroup(refCls, classesData, allClasses, hierarchy, level+1, seen);
       if (sub) {
         // Scale down to fit max box. At small scales, edge overflow becomes negligible.
         const MAX_W = 320, MAX_H = 220, PAD = 12;
@@ -1019,30 +1105,13 @@ window.closeSidebar=closeSidebar;
 // ── build full canvas SVG ─────────────────────────────────
 function buildCanvas(classes, classesData, refsData) {
   _expandedGlobal = new Set(); // reset per render
-  // Find top-level classes: those with no incoming @refs from other classes
-  // Build outgoing ref counts to handle circular references
-  const outCount = {}; // cls -> number of outgoing @refs to other classes
-  const inCount = {};  // cls -> number of incoming @refs from other classes
-  for (const cls of classes) { outCount[cls] = 0; inCount[cls] = 0; }
-  for (const cls of classes) {
-    const diagram = classesData[cls]?.diagram || '';
-    const refs = [...new Set([...diagram.matchAll(/@([\w-]+)/g)].map(m=>m[1]).filter(r => classes.includes(r)))];
-    outCount[cls] = refs.length;
-    refs.forEach(r => { inCount[r]++; });
-  }
-  // Top-level = not referenced, OR referenced but has more outgoing refs than any referrer (cycle breaker)
-  let topLevel = classes.filter(c => inCount[c] === 0);
-  if (!topLevel.length) {
-    // All classes have incoming refs (circular). Pick the one with most outgoing refs as root.
-    const maxOut = Math.max(...classes.map(c => outCount[c]));
-    topLevel = classes.filter(c => outCount[c] === maxOut);
-  }
-  const roots = topLevel;
+  _viewerHierarchy = buildViewerHierarchy(classes, refsData);
+  const roots = _viewerHierarchy.roots;
 
   // Render each top-level group
   const groups = [];
   for (const cls of roots) {
-    const g = renderGroup(cls, classesData, classes, 0);
+    const g = renderGroup(cls, classesData, classes, _viewerHierarchy, 0);
     if (g) groups.push({ cls, ...g });
   }
   if (!groups.length) return null;
@@ -1163,34 +1232,12 @@ function buildNavTree() {
   navList.innerHTML = '';
   if (!classes.length) return;
 
-  const navOutCount = {}, navInCount = {};
-  for (const c of classes) { navOutCount[c] = 0; navInCount[c] = 0; }
-  for (const name of classes) {
-    const out = refsData[name]?.outgoing || [];
-    const targets = [...new Set(out.map(o => typeof o === 'string' ? o : (o.target_class || o)).filter(r => classes.includes(r)))];
-    navOutCount[name] = targets.length;
-    targets.forEach(r => { navInCount[r]++; });
-  }
+  _viewerHierarchy = buildViewerHierarchy(classes, refsData);
+  const { roots, childrenByClass } = _viewerHierarchy;
 
-  let roots = classes.filter(c => navInCount[c] === 0);
-  if (roots.length === 0) {
-    // Circular refs — pick class with most outgoing refs as root
-    const maxOut = Math.max(...classes.map(c => navOutCount[c]));
-    roots = classes.filter(c => navOutCount[c] === maxOut);
-  }
-  if (roots.length === classes.length) {
-    classes.forEach(c => addNavItem(c, '', true));
-    return;
-  }
-
-  const globalSeen = new Set();
   function renderNode(name, prefix, isLast) {
-    if (globalSeen.has(name)) return;
-    globalSeen.add(name);
     addNavItem(name, prefix, isLast);
-    const out = (refsData[name]?.outgoing || [])
-      .map(o => typeof o === 'string' ? o : (o.target_class || o))
-      .filter(ref => classes.includes(ref) && !globalSeen.has(ref));
+    const out = childrenByClass[name] || [];
     out.forEach((ref, i) => {
       renderNode(ref, prefix + (isLast ? '   ' : '│  '), i === out.length - 1);
     });
