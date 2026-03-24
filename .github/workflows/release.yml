@@ -81,7 +81,8 @@ jobs:
 
       - name: Skip if release artifacts are already complete
         if: steps.release_gate.outputs.should_release != 'true'
-        run: echo "Skipping release: ${{ steps.release_gate.outputs.reason }}."
+        run: |
+          echo "Skipping release: ${{ steps.release_gate.outputs.reason }}."
 
       - name: Install, test, build, sync
         if: steps.release_gate.outputs.should_release == 'true'
