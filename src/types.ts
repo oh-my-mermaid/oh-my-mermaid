@@ -52,3 +52,15 @@ export interface RefEntry {
   node_id: string;
   node_label?: string;
 }
+
+export interface ValidationIssue {
+  level: 'error' | 'warning';
+  rule: string;
+  message: string;
+  line?: number;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  issues: ValidationIssue[];
+}
