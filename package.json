@@ -28,6 +28,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
+    "check-version-sync": "node scripts/check-version-sync.js",
     "sync-version": "node scripts/sync-version.js",
     "prepublishOnly": "npm run build && npm run sync-version"
   },

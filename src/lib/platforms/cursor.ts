@@ -11,6 +11,18 @@ function getCwd(): string {
   return process.cwd();
 }
 
+function getInstalledVersion(): string | null {
+  const manifestPath = path.join(getCwd(), PLUGIN_DIR, PLUGIN_FILE);
+  if (!fs.existsSync(manifestPath)) return null;
+
+  try {
+    const json = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+    return typeof json.version === 'string' ? json.version : null;
+  } catch {
+    return null;
+  }
+}
+
 export const cursor: Platform = {
   name: 'Cursor',
   id: 'cursor',
@@ -27,7 +39,11 @@ export const cursor: Platform = {
   },
 
   isSetup(): boolean {
-    return fs.existsSync(path.join(getCwd(), PLUGIN_DIR, PLUGIN_FILE));
+    const installed = getInstalledVersion();
+    if (!installed) return false;
+    const current = getPackageVersion();
+    if (!current) return true;
+    return installed === current;
   },
 
   async setup(): Promise<void> {

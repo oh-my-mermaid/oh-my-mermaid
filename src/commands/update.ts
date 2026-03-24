@@ -1,5 +1,4 @@
-import { execSync } from 'node:child_process';
-import { commandSetup } from './setup.js';
+import { execFileSync, execSync } from 'node:child_process';
 
 export async function commandUpdate(): Promise<void> {
   // Step 1: Update npm package
@@ -14,7 +13,12 @@ export async function commandUpdate(): Promise<void> {
     return;
   }
 
-  // Step 2: Re-run setup to update plugins
+  // Step 2: Re-run setup through the freshly installed CLI
   process.stderr.write('\nUpdating platform plugins...\n');
-  await commandSetup([]);
+  try {
+    execFileSync('omm', ['setup'], { stdio: 'inherit' });
+  } catch (err: any) {
+    process.stderr.write('  Updated the npm package, but failed to re-run `omm setup`.\n');
+    throw err;
+  }
 }
