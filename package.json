@@ -1,6 +1,6 @@
 {
   "name": "oh-my-mermaid",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Architecture mirror for vibe coding — CLI + Claude Code skills",
   "type": "module",
   "bin": {
