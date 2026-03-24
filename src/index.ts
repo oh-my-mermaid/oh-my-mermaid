@@ -12,6 +12,7 @@ export type {
   DiffResult,
   RefEntry,
   OmmConfig,
+  ValidateContext,
   ValidationIssue,
   ValidationResult,
   StructureTreeNode,

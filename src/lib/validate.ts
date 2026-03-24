@@ -1,6 +1,6 @@
 import { parseMermaid } from './diff.js';
 import { extractRefs } from './refs.js';
-import type { ValidationIssue, ValidationResult } from '../types.js';
+import type { ValidateContext, ValidationIssue, ValidationResult } from '../types.js';
 
 // --- Source-of-truth constants ---
 
@@ -49,11 +49,6 @@ function checkBracketBalance(line: string): boolean {
 }
 
 // --- Main validation function ---
-
-export interface ValidateContext {
-  className: string;
-  allClasses: string[];
-}
 
 export function validateDiagram(text: string, context?: ValidateContext): ValidationResult {
   const issues: ValidationIssue[] = [];
@@ -145,6 +140,12 @@ export function validateDiagram(text: string, context?: ValidateContext): Valida
           level: 'error',
           rule: 'ref-exists',
           message: `@${ref} does not exist. Available: ${context.allClasses.join(', ')}`,
+        });
+      } else if (context.diagramClasses && !context.diagramClasses.includes(ref)) {
+        issues.push({
+          level: 'error',
+          rule: 'ref-diagram',
+          message: `@${ref} exists but has no diagram.mmd. Every @ref target must be a real class diagram.`,
         });
       }
     }

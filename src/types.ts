@@ -65,6 +65,12 @@ export interface ValidationResult {
   issues: ValidationIssue[];
 }
 
+export interface ValidateContext {
+  className: string;
+  allClasses: string[];
+  diagramClasses?: string[];
+}
+
 export interface StructureTreeNode {
   path: string;
   files: number;

@@ -8,7 +8,8 @@ function validateClass(className: string, allClasses: string[]): { errors: numbe
     return { errors: 0, warnings: 0 };
   }
 
-  const result = validateDiagram(diagram, { className, allClasses });
+  const diagramClasses = allClasses.filter(name => Boolean(readField(name, 'diagram')));
+  const result = validateDiagram(diagram, { className, allClasses, diagramClasses });
   const errors = result.issues.filter(i => i.level === 'error').length;
   const warnings = result.issues.filter(i => i.level === 'warning').length;
 
@@ -43,6 +44,9 @@ export function commandValidate(className?: string): void {
 
   // Validate all classes
   let totalErrors = 0;
+  if (allClasses.length > 1 && !allClasses.includes('overall-architecture')) {
+    process.stdout.write('warning [root-overview]: missing overall-architecture class. Multi-class scans should anchor all top-level classes under overall-architecture.\n\n');
+  }
   for (const cls of allClasses) {
     const { errors } = validateClass(cls, allClasses);
     totalErrors += errors;

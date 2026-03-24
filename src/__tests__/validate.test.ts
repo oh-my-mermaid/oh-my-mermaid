@@ -58,7 +58,7 @@ describe('validateDiagram', () => {
   it('errors on @ref to nonexistent class', () => {
     const diagram = `graph LR
     A["@ghost-class"]`;
-    const result = validateDiagram(diagram, { className: 'overview', allClasses: ['overview', 'auth'] });
+    const result = validateDiagram(diagram, { className: 'overview', allClasses: ['overview', 'auth'], diagramClasses: ['overview', 'auth'] });
     expect(result.valid).toBe(false);
     const issue = result.issues.find(i => i.rule === 'ref-exists');
     expect(issue).toBeDefined();
@@ -68,9 +68,23 @@ describe('validateDiagram', () => {
   it('errors on self @ref', () => {
     const diagram = `graph LR
     A["@auth-flow"]`;
-    const result = validateDiagram(diagram, { className: 'auth-flow', allClasses: ['auth-flow', 'overview'] });
+    const result = validateDiagram(diagram, { className: 'auth-flow', allClasses: ['auth-flow', 'overview'], diagramClasses: ['auth-flow', 'overview'] });
     expect(result.valid).toBe(false);
     const issue = result.issues.find(i => i.rule === 'ref-self');
+    expect(issue).toBeDefined();
+    expect(issue!.level).toBe('error');
+  });
+
+  it('errors when @ref target exists without a diagram', () => {
+    const diagram = `graph LR
+    A["@browser"]`;
+    const result = validateDiagram(diagram, {
+      className: 'cli-shell',
+      allClasses: ['cli-shell', 'browser'],
+      diagramClasses: ['cli-shell'],
+    });
+    expect(result.valid).toBe(false);
+    const issue = result.issues.find(i => i.rule === 'ref-diagram');
     expect(issue).toBeDefined();
     expect(issue!.level).toBe('error');
   });
@@ -79,7 +93,7 @@ describe('validateDiagram', () => {
     const diagramA = `graph LR
     X["@class-b"]`;
     // class-a references class-b — this is fine even if class-b references class-a
-    const result = validateDiagram(diagramA, { className: 'class-a', allClasses: ['class-a', 'class-b'] });
+    const result = validateDiagram(diagramA, { className: 'class-a', allClasses: ['class-a', 'class-b'], diagramClasses: ['class-a', 'class-b'] });
     const circularIssue = result.issues.find(i => i.rule === 'ref-self');
     expect(circularIssue).toBeUndefined();
   });

@@ -35,6 +35,8 @@ If the install command fails (permission denied), tell the user:
 - Always run `omm structure` first, before deciding which classes to create or update.
 - Use the structure output to choose the class set, the relevant `source_paths`, and the smallest code slice needed to ground the diagrams.
 - Only after the structure prepass should you read code, compare existing docs, and write updates.
+- In full scans, `overall-architecture` is mandatory whenever the result has more than one meaningful class.
+- If you add `@child-class` anywhere, you must also create or update that child class in the same scan.
 
 ## A. Full Scan Mode (no arguments)
 
@@ -49,6 +51,12 @@ Use the output to identify:
 - candidate classes worth documenting
 - concrete `source_paths` for each class
 - entry points, shared modules, and externally connected areas
+
+Promote a subsystem into its own class when at least two of these are true:
+- it has a large file count or visibly complex internal graph
+- it has strong import centrality or repeated references from multiple areas
+- it sits on a package boundary or explicit app/module boundary
+- it is named and treated like a product subsystem, not just a helper directory
 
 ### Step 2: Ground the Scan in Code
 
@@ -73,6 +81,7 @@ Create classes based on what a person new to this codebase most needs to underst
 | `external-integrations` | External APIs/services | What the system connects to and why |
 
 Only create a class if it meaningfully exists in the code. 3-5 classes is usually right; avoid forcing perspectives that don't exist.
+When the structure prepass reveals multiple large sibling subsystems, prefer separate classes over a single giant bucket.
 
 For a new codebase or one with no existing classes, keep the first pass focused on the most important system views instead of trying to cover everything.
 
@@ -131,6 +140,14 @@ graph LR
 The viewer detects `@` in the label and renders the node as an expandable sub-group. Do NOT add a file path to `@ref` nodes - they represent a whole sub-diagram, not a single file.
 
 ### Step 5: Summarize
+
+Run:
+
+```bash
+omm validate
+```
+
+Fix all validation errors before finishing. Warnings can remain only when they reflect a conscious tradeoff you explain in the summary.
 
 Report what was created/updated and suggest `omm view` to view.
 
@@ -191,7 +208,14 @@ MERMAID
 ### Step 6: Verify and Summarize
 
 ```bash
+omm validate <new-class>
 omm refs <new-class>
+```
+
+If you edited a parent diagram to add `@new-class`, validate that parent too:
+
+```bash
+omm validate overall-architecture
 ```
 
 Report: "auth-flow created, @auth-flow added to overall-architecture"
@@ -211,6 +235,7 @@ When analyzing the codebase, identify sub-systems that are complex enough to war
 1. Create a new class: `omm <child-class> diagram - <<'MERMAID'...MERMAID`
 2. In the parent diagram, add a node with `@child-class` as the label (e.g. `auth["@auth-flow"]`)
 3. Fill all 7 fields for the child class (description, constraint, concern, context, todo, note)
+4. Run `omm validate <child-class>` and `omm validate <parent-class>` after wiring the ref
 
 **Example:**
 If `overall-architecture` has an auth subsystem with 8+ nodes:

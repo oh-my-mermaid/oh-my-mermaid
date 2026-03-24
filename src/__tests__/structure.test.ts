@@ -143,6 +143,8 @@ describe('omm-scan skill contract', () => {
 
     expect(source).toContain('omm structure');
     expect(source).toContain('one-shot');
+    expect(source).toContain('overall-architecture');
+    expect(source).toContain('omm validate');
     expect(source).not.toContain('approval');
     expect(source).not.toContain('scan-plan');
   });
