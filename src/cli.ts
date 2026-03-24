@@ -18,8 +18,9 @@ import { commandShare } from './commands/share.js';
 import { commandSetup } from './commands/setup.js';
 import { commandUpdate } from './commands/update.js';
 import { commandOrg } from './commands/org.js';
+import { commandValidate } from './commands/validate.js';
 
-const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'validate', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -38,6 +39,7 @@ Usage:
   omm diff <class>                  Compare current vs previous diagram
   omm refs <class>                  Show classes that reference this class
   omm refs --reverse <class>        Show classes this class references
+  omm validate [class]              Validate diagram(s) for syntax and conventions
   omm view [--port <port>]         Start web viewer (default: 3000)
 
   omm <class> <field>               Read a field (stdout)
@@ -113,6 +115,10 @@ async function main(): Promise<void> {
         process.exit(1);
       }
       commandDiff(args[1]);
+      return;
+
+    case 'validate':
+      commandValidate(args[1]);
       return;
 
     case 'refs': {
