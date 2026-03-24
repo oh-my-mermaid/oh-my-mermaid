@@ -64,3 +64,46 @@ export interface ValidationResult {
   valid: boolean;
   issues: ValidationIssue[];
 }
+
+export interface StructureTreeNode {
+  path: string;
+  files: number;
+  languages: string[];
+}
+
+export interface StructureSample {
+  from: string;
+  to: string;
+}
+
+export interface StructureRelation {
+  from: string;
+  to: string;
+  kind: 'import';
+  count: number;
+  samples: StructureSample[];
+}
+
+export interface StructureEntryPoint {
+  path: string;
+  kind: 'cli' | 'web' | 'script' | 'module';
+}
+
+export interface StructurePackage {
+  path: string;
+  name: string;
+}
+
+export interface StructureScanMeta {
+  root: string;
+  scanned_files: number;
+  generated_at: string;
+}
+
+export interface StructureOutput {
+  tree: StructureTreeNode[];
+  relations: StructureRelation[];
+  entry_points: StructureEntryPoint[];
+  packages: StructurePackage[];
+  scan_meta: StructureScanMeta;
+}

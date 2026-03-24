@@ -1,6 +1,6 @@
 ---
 name: omm-scan
-description: Scan codebase architecture and generate/update .omm/ documentation. Without arguments does a full scan; with arguments focuses on a specific topic and auto-links to parent diagrams. Use when the user says "omm scan", "scan architecture", "update architecture", "refresh diagrams", "omm scan auth flow", "analyze the payment module", or "dive into auth".
+description: Scan codebase architecture and generate/update .omm/ documentation. Always runs an internal `omm structure` prepass, then updates classes in one pass. Without arguments does a full scan; with arguments focuses on a specific topic and auto-links to parent diagrams. Use when the user says "omm scan", "scan architecture", "update architecture", "refresh diagrams", "omm scan auth flow", "analyze the payment module", or "dive into auth".
 argument-hint: "[topic]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "[topic]"
 ## Purpose
 
 Analyze the codebase and generate/update `.omm/` architecture documentation using the `omm` CLI.
-Operates in two modes based on whether arguments are provided.
+This is a one-shot workflow: run a structure prepass, use it to ground the scan, then immediately generate or update the relevant classes.
 
 ## Prerequisites
 
@@ -24,36 +24,43 @@ If the install command fails (permission denied), tell the user:
 
 ## Mode Detection
 
-- **No arguments** (`/omm-scan`): Full scan mode — analyze entire codebase
-- **With arguments** (`/omm-scan auth flow`): Focused mode — analyze specific topic only
+- **No arguments** (`/omm-scan`): Full scan mode - analyze the entire codebase
+- **With arguments** (`/omm-scan auth flow`): Focused mode - analyze a specific topic only
 
 ---
 
+## One-Shot Execution Rules
+
+- Do not add any extra planning gate or pause between discovery and updates.
+- Always run `omm structure` first, before deciding which classes to create or update.
+- Use the structure output to choose the class set, the relevant `source_paths`, and the smallest code slice needed to ground the diagrams.
+- Only after the structure prepass should you read code, compare existing docs, and write updates.
+
 ## A. Full Scan Mode (no arguments)
 
-### Step 1: Check Existing State
+### Step 1: Run Structure Prepass
 
 ```bash
-omm list
+omm structure
 ```
 
-For each existing class, read current content:
-```bash
-omm <class> description
-omm <class> diagram
-```
+Use the output to identify:
+- top-level boundaries and subsystems
+- candidate classes worth documenting
+- concrete `source_paths` for each class
+- entry points, shared modules, and externally connected areas
 
-### Step 2: Explore the Codebase
+### Step 2: Ground the Scan in Code
 
-Use Glob and Read to understand the project:
-- Read `package.json`, `tsconfig.json`, or equivalent config files
-- List top-level directories to identify module boundaries
-- Read key entry points (main, index, app files)
-- Look for route definitions, service layers, database connections
+Read only the files suggested by `omm structure`, then expand as needed to verify the actual relationships:
+- read `package.json`, `tsconfig.json`, or equivalent config files when they help confirm layout
+- inspect the directories and entry points named by the prepass
+- follow imports, route handlers, command dispatchers, and config wiring from those files
+- compare against existing `.omm/` classes only for the classes you are about to touch
 
-### Step 3: Generate/Update Classes
+### Step 3: Generate/Update Classes Immediately
 
-**First run (no existing classes):** Create classes based on what a person new to this codebase most needs to understand. Always start with `overall-architecture`, then add perspectives from this list based on what exists in the code:
+Create classes based on what a person new to this codebase most needs to understand. Always start with `overall-architecture`, then add perspectives from this list based on what exists in the code:
 
 | Class name | When to create | What it answers |
 |---|---|---|
@@ -67,7 +74,7 @@ Use Glob and Read to understand the project:
 
 Only create a class if it meaningfully exists in the code. 3-5 classes is usually right; avoid forcing perspectives that don't exist.
 
-**Subsequent runs:** Compare existing docs against current code, update only what changed.
+For a new codebase or one with no existing classes, keep the first pass focused on the most important system views instead of trying to cover everything.
 
 For each class, call the CLI with **each field separately**:
 
@@ -85,19 +92,19 @@ MERMAID
 omm <class> context - <<'EOF'
 (The most important field for human understanding: WHY this architecture exists)
 - Key decisions made and why (e.g., "Chose event-driven over direct calls to decouple billing from orders")
-- Constraints that shaped the design (e.g., "Must support offline mode — hence local-first storage")
+- Constraints that shaped the design (e.g., "Must support offline mode - hence local-first storage")
 - Alternatives considered and rejected
 - Historical reasons if relevant
 EOF
 
 omm <class> constraint - <<'EOF'
 (Rules that MUST be followed when changing this area)
-- e.g., "API layer must never import from repository directly — always go through service"
+- e.g., "API layer must never import from repository directly - always go through service"
 EOF
 
 omm <class> concern - <<'EOF'
 (Risks, technical debt, known issues a reader should be aware of)
-- e.g., "Auth service is a single point of failure — no fallback if it's down"
+- e.g., "Auth service is a single point of failure - no fallback if it's down"
 EOF
 
 omm <class> todo - <<'EOF'
@@ -121,7 +128,7 @@ graph LR
     client -->|"authenticate"| auth["@auth-flow"]
 ```
 
-The viewer detects `@` in the label and renders the node as an expandable sub-group. Do NOT add a file path to `@ref` nodes — they represent a whole sub-diagram, not a single file.
+The viewer detects `@` in the label and renders the node as an expandable sub-group. Do NOT add a file path to `@ref` nodes - they represent a whole sub-diagram, not a single file.
 
 ### Step 5: Summarize
 
@@ -134,22 +141,33 @@ Report what was created/updated and suggest `omm view` to view.
 ### Step 1: Parse Topic
 
 Convert `$ARGUMENTS` to a kebab-case class name:
-- "auth flow" → `auth-flow`
-- "payment service" → `payment-service`
-- "database schema" → `database-schema`
+- "auth flow" -> `auth-flow`
+- "payment service" -> `payment-service`
+- "database schema" -> `database-schema`
 
-### Step 2: Deep Analysis
+### Step 2: Run Structure Prepass
 
-Focus Glob and Read on code related to the topic:
-- Search for files matching the topic (e.g., `*auth*`, `*payment*`)
-- Trace imports and dependencies from those files
-- Understand the full flow for this specific concern
+```bash
+omm structure
+```
 
-### Step 3: Create/Update Class
+Use the output to narrow the scan to:
+- the requested class and its closest related modules
+- concrete `source_paths` that should appear in the diagram
+- the most likely parent diagram for cross-linking
+
+### Step 3: Deep Analysis
+
+Focus Glob and Read on code related to the topic and the paths surfaced by the prepass:
+- search for files matching the topic or related module names
+- trace imports, route handlers, command dispatchers, and config wiring from those files
+- understand the full flow for this specific concern, but do not widen the scope beyond what the topic and structure output justify
+
+### Step 4: Create/Update Class
 
 Generate all fields via CLI (same as full scan, but for this one class only).
 
-### Step 4: Auto-Link to Parent
+### Step 5: Auto-Link to Parent
 
 This is the key differentiator from full scan:
 
@@ -170,7 +188,7 @@ graph LR
 MERMAID
 ```
 
-### Step 5: Verify and Summarize
+### Step 6: Verify and Summarize
 
 ```bash
 omm refs <new-class>
@@ -202,7 +220,7 @@ If `overall-architecture` has an auth subsystem with 8+ nodes:
 
 ### Edge Labels
 
-Every edge MUST have a meaningful label. The label should answer **"why does this connection exist?"** — not just the protocol.
+Every edge MUST have a meaningful label. The label should answer **"why does this connection exist?"** - not just the protocol.
 
 **Format:** `A -->|"label"| B`
 
@@ -230,6 +248,28 @@ AuthService -->|"HTTP"| UserRepository
 
 The test: if you remove the label, does the reader lose important understanding? If yes, the label is good. If the label is just a protocol name, it's probably not enough.
 
+### Edge Grounding
+
+Every edge must be grounded in code evidence. Prefer the strongest evidence available and do not invent connectivity from architecture intuition alone.
+
+**Preferred evidence, in order:**
+1. Direct imports, requires, exports, or explicit module references
+2. Route or handler wiring that clearly connects an entry point to its implementation
+3. Command dispatch or CLI routing that connects a command to the code path it invokes
+4. Config wiring that explicitly binds one component to another
+
+**Allowed when the code supports it:**
+- `route -> handler` when the route table and handler registration are explicit
+- `command -> dispatcher` when the CLI or command map names the implementation
+- `config -> component` when configuration is actually consumed to wire the component
+
+**Forbidden:**
+- phantom edges created from naming similarity, package layout, or assumed runtime behavior
+- edges that are only "probably true" without code evidence
+- edges that skip an intermediate component that is visible in code
+
+If the evidence is weak, omit the edge and describe the relationship in a field instead of drawing it.
+
 ## Rules (Both Modes)
 
 - Write all content (node labels, edge labels, field text) in **English by default**. If the user wrote in another language, match that language throughout.
@@ -245,13 +285,13 @@ The test: if you remove the label, does the reader lose important understanding?
   - The viewer renders the path smaller and muted below the concept name
   - For modules/folders, use the directory path (e.g., `src/payment/`)
   - For single files, use the file path (e.g., `src/auth/service.ts`)
-- Keep diagrams readable — 5-15 nodes max per diagram.
+- Keep diagrams readable - 5-15 nodes max per diagram.
 - Use `graph LR` for most diagrams, `graph TD` for hierarchies.
 - Do NOT rewrite classes that haven't changed.
-- Do NOT delete classes — only report if obsolete.
-- Write each field separately (constraint, concern, context, todo, note) — do NOT combine them.
+- Do NOT delete classes - only report if obsolete.
+- Write each field separately (constraint, concern, context, todo, note) - do NOT combine them.
 - Use `omm diff <class>` after updating to verify changes.
-- Use `classDef` to visually distinguish node roles — apply only when the distinction genuinely helps a reader:
+- Use `classDef` to visually distinguish node roles - apply only when the distinction genuinely helps a reader:
 
   | Class | Color | When to use |
   |---|---|---|
@@ -267,5 +307,5 @@ The test: if you remove the label, does the reader lose important understanding?
   classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
   ```
 
-  Do not overuse — if everything has a color, nothing stands out.
+  Do not overuse - if everything has a color, nothing stands out.
 - Do NOT create circular `@`references. A child class must never `@`-reference its parent. If `overall-architecture` has `auth["@auth-flow"]`, then `auth-flow`'s diagram must NOT reference `@overall-architecture`. Use `context.md` to describe the parent relationship instead.

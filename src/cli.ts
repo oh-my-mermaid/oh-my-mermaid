@@ -19,8 +19,9 @@ import { commandSetup } from './commands/setup.js';
 import { commandUpdate } from './commands/update.js';
 import { commandOrg } from './commands/org.js';
 import { commandValidate } from './commands/validate.js';
+import { commandStructure } from './commands/structure.js';
 
-const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'validate', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'validate', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'structure', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -56,6 +57,8 @@ Cloud:
   omm org list                      List your organizations
   omm org switch <slug>             Set default organization
   omm org members [slug]            View members (opens web)
+  omm structure                     Print repo structure as JSON
+  omm structure --summary           Print repo structure summary
 
 Fields: description, diagram, constraint, concern, context, todo, note
 `;
@@ -175,6 +178,10 @@ async function main(): Promise<void> {
 
     case 'org':
       await commandOrg(args[1], args[2]);
+      return;
+
+    case 'structure':
+      await commandStructure({ summary: args.includes('--summary') });
       return;
 
     default:
