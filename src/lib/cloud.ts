@@ -12,6 +12,18 @@ interface Credentials {
   default_org?: string;
 }
 
+export function syncHandleCredentials(creds: Credentials, handle: string): Credentials {
+  const next = { ...creds };
+  const previousHandle = next.handle ?? null;
+
+  next.handle = handle;
+  if (!next.default_org || next.default_org === previousHandle) {
+    next.default_org = handle;
+  }
+
+  return next;
+}
+
 export function getCredentialsPath(): string {
   return CREDENTIALS_FILE;
 }
@@ -56,12 +68,7 @@ export function saveToken(token: string): void {
 }
 
 export function saveHandle(handle: string): void {
-  const creds = readCredentials();
-  creds.handle = handle;
-  if (!creds.default_org) {
-    creds.default_org = handle;
-  }
-  writeCredentials(creds);
+  writeCredentials(syncHandleCredentials(readCredentials(), handle));
 }
 
 export function saveDefaultOrg(orgSlug: string): void {
