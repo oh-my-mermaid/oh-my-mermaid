@@ -3,6 +3,7 @@ import path from 'node:path';
 import YAML from 'yaml';
 import { getToken, getDefaultOrg, apiRequest } from '../lib/cloud.js';
 import { ensureOmmForWrite, getOmmDir } from '../lib/store.js';
+import { resolvePullDestination } from '../lib/cloud-paths.js';
 
 export async function commandPull(): Promise<void> {
   ensureOmmForWrite();
@@ -48,7 +49,7 @@ export async function commandPull(): Promise<void> {
   const files = data.files ?? [];
 
   for (const file of files) {
-    const dest = path.join(ommDir, file.path);
+    const dest = resolvePullDestination(ommDir, file.path);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, file.content, 'utf-8');
   }
