@@ -1,38 +1,63 @@
 name: Release to npm
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+    paths: [package.json]
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if version changed
+        id: version
+        run: |
+          NEW=$(node -p "require('./package.json').version")
+          OLD=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" != "$OLD" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if version unchanged
+        if: steps.version.outputs.changed != 'true'
+        run: echo "Version unchanged (${{ steps.version.outputs.old }}), skipping release."
 
       - uses: actions/setup-node@v4
+        if: steps.version.outputs.changed == 'true'
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - run: npm ci
-
-      - run: npm run build
-
-      - run: npm run sync-version
-
-      - name: Verify version matches release tag
+      - name: Install, build, sync
+        if: steps.version.outputs.changed == 'true'
         run: |
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
-            echo "Version mismatch: package.json=$PKG_VERSION, tag=$TAG_VERSION"
-            exit 1
-          fi
+          npm ci
+          npm run build
+          npm run sync-version
 
-      - run: npm publish --provenance --access public
+      - name: Create git tag and GitHub release
+        if: steps.version.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.version.outputs.new }}"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          gh release create "$VERSION" --generate-notes --title "$VERSION"
+
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true'
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
