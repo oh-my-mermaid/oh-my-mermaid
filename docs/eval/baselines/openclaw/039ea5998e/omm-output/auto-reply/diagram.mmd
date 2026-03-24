@@ -1,0 +1,24 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  dispatch["Auto-Reply Dispatch\nsrc/auto-reply/dispatch.ts"]:::entry
+  cmd_detect["Command Detection\nsrc/auto-reply/command-detection.ts"]
+  cmd_auth["Command Auth\nsrc/auto-reply/command-auth.ts"]
+  group_act["Group Activation\nsrc/auto-reply/group-activation.ts"]
+  heartbeat["Heartbeat Reply\nsrc/auto-reply/heartbeat-reply-payload.ts"]
+  cmd_registry["Commands Registry\nsrc/auto-reply/commands-registry.ts"]:::store
+  fallback["Fallback State\nsrc/auto-reply/fallback-state.ts"]
+  envelope["Envelope\nsrc/auto-reply/envelope.ts"]
+  polls["Polls\nsrc/polls.ts"]:::external
+
+  dispatch -->|"detects"| cmd_detect
+  cmd_detect -->|"authorizes"| cmd_auth
+  dispatch -->|"triggers"| group_act
+  dispatch -->|"sends"| heartbeat
+  dispatch -->|"looks up"| cmd_registry
+  dispatch -->|"falls back to"| fallback
+  dispatch -->|"wraps in"| envelope
+  dispatch -->|"polled by"| polls

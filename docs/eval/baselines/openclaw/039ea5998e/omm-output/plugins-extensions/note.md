@@ -1,0 +1,3 @@
+- src/plugins (~209) + src/hooks (~50) + src/memory (~105) + src/sessions (~15) = ~379 files
+- extensionAPI.ts is the published contract between gateway internals and plugin ecosystem
+- The plugin-sdk has multiple sub-entry-points (core, sandbox, provider-setup, ollama-setup, self-hosted-provider-setup) as separate package.json exports

@@ -1,0 +1,3 @@
+- ~310 files — mirrors the interactive commands layer but for asynchronous/automated contexts
+- The commands-registry.ts here is distinct from src/commands/commands-registry.ts
+- group-activation.ts handles multi-user group chat scenarios where the bot is not always active

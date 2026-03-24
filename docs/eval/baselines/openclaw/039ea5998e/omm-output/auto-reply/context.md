@@ -1,0 +1,10 @@
+- src/auto-reply/ — ~310 files
+- src/auto-reply/dispatch.ts — main entry for automated message handling
+- src/auto-reply/command-detection.ts — heuristic detection of commands in free text
+- src/auto-reply/command-auth.ts — per-command authorization for auto-reply context
+- src/auto-reply/group-activation.ts — group chat activation logic (e.g., mention triggers)
+- src/auto-reply/heartbeat-reply-payload.ts — keep-alive reply payloads
+- src/auto-reply/commands-registry.ts — auto-reply specific command registry
+- src/auto-reply/fallback-state.ts — default response when no rule matches
+- src/auto-reply/envelope.ts — message envelope construction
+- src/polls.ts, src/poll-params.ts — polling loop driving auto-reply delivery

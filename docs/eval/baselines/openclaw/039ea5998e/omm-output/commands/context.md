@@ -1,0 +1,9 @@
+- src/commands/ — ~399 files covering all slash-command implementations
+- src/commands/commands-registry.ts — central registry mapping command names to handlers
+- src/commands/dispatch.ts — routes parsed commands to correct handler
+- src/commands/agents.commands.*.ts — add, bind, delete, list, identity subcommands
+- src/commands/auth-choice*.ts — multi-step auth selection prompts
+- src/commands/agents.bindings.ts — channel binding management
+- src/wizard/ — ~16 files for interactive setup wizard flows
+- src/commands/chunk.ts, envelope.ts — message chunking and envelope wrapping
+- src/commands/command-auth.ts — command-level auth enforcement

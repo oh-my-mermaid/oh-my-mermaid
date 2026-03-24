@@ -1,0 +1,3 @@
+- Polling loop (polls.ts) has no adaptive backoff — fixed interval under heavy load causes thundering herd
+- command-detection heuristics can produce false positives in natural language messages
+- fallback-state silently drops unmatched messages with no logging by default

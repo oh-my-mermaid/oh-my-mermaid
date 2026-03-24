@@ -1,0 +1,1 @@
+Next.js 16 (App Router) marketing and authentication website for agito. Built with React 19, Tailwind CSS v4, and shadcn/ui components. Handles user auth flows via Supabase, billing redirects from Polar, and serves as the public-facing landing page and account portal. Deployed separately from the desktop app and server.

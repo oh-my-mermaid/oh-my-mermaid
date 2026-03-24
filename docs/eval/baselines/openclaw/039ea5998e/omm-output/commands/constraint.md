@@ -1,0 +1,4 @@
+- Command handlers must be stateless; session state lives in @gateway-runtime
+- The registry data file (commands-registry.data.ts) is the single source of command metadata — do not hardcode command names elsewhere
+- Auth enforcement (command-auth.ts) must run before any handler executes
+- Wizard flows must not bypass the dispatch layer

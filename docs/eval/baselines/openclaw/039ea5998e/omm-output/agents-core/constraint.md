@@ -1,0 +1,5 @@
+- Auth profiles are the single source of truth for credentials; no hardcoded API keys elsewhere
+- API key rotation must respect cooldown expiry (auth-profiles.cooldown-auto-expiry.ts) before cycling
+- ACP spawn must use parent-stream protocol for cross-agent communication; direct socket calls are not permitted
+- Agent scope must be validated before any file-system patch is applied
+- Provider selection is determined at boot per agent config; runtime switching is not supported

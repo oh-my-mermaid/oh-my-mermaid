@@ -1,0 +1,4 @@
+- MCP session architecture was superseded — risk of confusion if developers read legacy code as current design
+- node_modules present in legacy root; may conflict with workspace resolution if bun install is run from repo root
+- Mermaid package in legacy has unclear relationship to agito-site or agito-app rendering
+- No clear migration plan documented for extracting reusable code from legacy into v2

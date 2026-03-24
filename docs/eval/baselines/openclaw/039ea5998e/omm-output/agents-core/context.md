@@ -1,0 +1,11 @@
+- src/agents/ — ~935 files, largest subsystem
+- src/agents/agent.ts — main agent class and lifecycle
+- src/agents/auth-profiles/ — auth profile store, cooldowns, external CLI sync
+- src/agents/api-key-rotation.ts — automatic API key cycling
+- src/agents/agents.providers.ts — provider registry (Anthropic, Vertex, etc.)
+- src/agents/anthropic-vertex-provider.ts — Anthropic/Vertex unified adapter
+- src/agents/acp-spawn.ts, acp-spawn-parent-stream.ts — ACP multi-agent spawning
+- src/agents/agent-prompt.ts — prompt assembly and system prompt injection
+- src/agents/apply-patch.ts — applies LLM-generated code patches
+- src/agents/agent-scope.ts, agent-paths.ts — per-agent file scope and path resolution
+- src/agents/agent-command.ts — agent-level command interception

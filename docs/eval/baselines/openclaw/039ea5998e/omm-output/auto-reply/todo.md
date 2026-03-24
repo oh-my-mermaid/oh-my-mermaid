@@ -1,0 +1,3 @@
+- Add adaptive backoff to polling loop
+- Add structured logging to fallback-state for unmatched message auditing
+- Improve command-detection confidence scoring to reduce false positives

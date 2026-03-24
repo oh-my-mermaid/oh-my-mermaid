@@ -1,0 +1,5 @@
+- Config writes must be atomic — use staging files before rename to prevent partial writes
+- Secrets must never be logged or included in archive exports
+- Daemon must implement restart backoff; immediate restart loops are not permitted
+- Binary downloads must be version-pinned and checksum-verified before use
+- Security policy checks must run before any config mutation, not just reads

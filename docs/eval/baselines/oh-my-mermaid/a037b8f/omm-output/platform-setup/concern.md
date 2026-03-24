@@ -1,0 +1,5 @@
+- Detection via `which` + `execSync` is synchronous and will fail silently on systems where the binary is installed but not on PATH.
+- No rollback on partial setup failure — if setup() throws mid-way, the platform is left in a partially configured state.
+- The `skills/` source path resolution in `utils.ts` uses heuristic directory searching which could resolve to a wrong directory in monorepo setups.
+- Each platform driver has its own copy of the "check version and write manifest" pattern — shared logic is minimal, leading to drift between drivers.
+- No test coverage for actual platform detection logic since it depends on the host machine's installed tools.

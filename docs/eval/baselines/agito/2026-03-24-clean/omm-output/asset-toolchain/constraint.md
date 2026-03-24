@@ -1,0 +1,5 @@
+- Requires Python >=3.11 and the same dependencies as agito-server (Pillow, google-genai, numpy)
+- GEMINI_API_KEY or GOOGLE_API_KEY must be set in environment before running scripts
+- Scripts write output files relative to their invocation directory — run from repo root
+- gito_split_careful.py and gito_split_floodfill.py expect specific sprite sheet dimensions as CLI args
+- Not packaged or installable — intended for local developer use only, not CI/CD pipelines

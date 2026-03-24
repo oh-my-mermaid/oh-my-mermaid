@@ -1,0 +1,6 @@
+- Python >=3.11 required (pyproject.toml)
+- uv_build is the build backend — not setuptools; pip install -e . will not work
+- rembg[cpu] variant used; GPU variant would require separate Docker image with CUDA base
+- Polar webhook signature verification must be validated before processing billing events
+- Supabase JWT secret must match between server config and Supabase project settings
+- Alembic migrations must be run before starting server (not auto-applied on startup)

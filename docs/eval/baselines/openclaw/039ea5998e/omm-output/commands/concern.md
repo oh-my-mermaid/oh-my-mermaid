@@ -1,0 +1,3 @@
+- Dispatcher silently swallows unknown commands via fallback-state — may hide typos
+- Agent bind/unbind commands mutate persistent config; partial failure leaves bindings inconsistent
+- Auth-choice prompt chain has multiple legacy paths (auth-choice-legacy.ts) creating divergent UX

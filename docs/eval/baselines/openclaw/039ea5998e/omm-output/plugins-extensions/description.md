@@ -1,0 +1,1 @@
+Plugin and extension system. Provides the plugin SDK for third-party integrations, manages hook registration and execution, handles session lifecycle, and owns the memory subsystem for persistent conversation context. The extensibility surface for all external integrations.

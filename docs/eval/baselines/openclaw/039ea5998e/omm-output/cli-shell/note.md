@@ -1,0 +1,3 @@
+- ~312 files in src/cli + src/tui + src/entry.ts
+- browser-cli-* files are tightly coupled to src/browser/@browser subsystem
+- The ACP CLI (acp-cli.ts) is distinct from the ACP protocol in src/acp/

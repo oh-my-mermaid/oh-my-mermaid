@@ -1,0 +1,26 @@
+graph LR
+  classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+  classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+  classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+  classDef concern fill:#f38ba8,stroke:#f38ba8,color:#1e1e2e
+
+  DiffCmd["omm diff\nsrc/commands/diff.ts"]:::entry
+  RefsCmd["omm refs\nsrc/commands/refs.ts"]:::entry
+  ValidateCmd["omm validate\nsrc/commands/validate.ts"]:::entry
+  DiffLib["Diff Engine\nsrc/lib/diff.ts"]:::store
+  RefsLib["Refs Engine\nsrc/lib/refs.ts"]:::store
+  ValidateLib["Validate Engine\nsrc/lib/validate.ts"]:::store
+  MermaidParser["Mermaid Parser\nsrc/lib/diff.ts#parseMermaid"]:::store
+  StoreAPI["Store API\n@cli-core"]:::store
+  ViewerAPI["Viewer API\n@local-viewer"]:::external
+
+  DiffCmd -->|"invokes"| DiffLib
+  RefsCmd -->|"invokes"| RefsLib
+  ValidateCmd -->|"invokes"| ValidateLib
+  DiffLib -->|"parses diagram via"| MermaidParser
+  ValidateLib -->|"parses diagram via"| MermaidParser
+  ValidateLib -->|"checks refs via"| RefsLib
+  RefsLib -->|"reads diagrams via"| StoreAPI
+  DiffLib -->|"reads prev_diagram from"| StoreAPI
+  ViewerAPI -->|"calls diff/refs via"| DiffLib
+  ViewerAPI -->|"calls diff/refs via"| RefsLib

@@ -1,0 +1,5 @@
+- Add --dry-run flag to all generation scripts to preview output paths without API calls
+- Add idempotency guard: skip generation if output file already exists (--force to override)
+- Move scripts to a dedicated agito-assets/ or tools/ subdirectory to keep repo root clean
+- Add a Makefile or justfile with documented targets for each generation workflow
+- Consider moving lockscreen_gen.py to a personal dotfiles repo if not used in agito game assets

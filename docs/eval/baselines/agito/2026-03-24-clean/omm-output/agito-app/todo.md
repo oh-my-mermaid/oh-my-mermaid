@@ -1,0 +1,5 @@
+- Implement Electron auto-updater (electron-updater) for binary distribution
+- Add IPC channel codegen to eliminate hand-maintained bridge.ts drift
+- Migrate from sql.js to better-sqlite3 in main process only (keep renderer state in Zustand)
+- Implement PixiJS sprite destroy lifecycle on character removal to prevent memory leaks
+- Add E2E tests for PTY session spawn/teardown using Playwright (already in devDeps)

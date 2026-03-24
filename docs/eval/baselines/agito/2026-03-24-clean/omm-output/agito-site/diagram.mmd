@@ -1,0 +1,25 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  Layout["Root Layout\nagito-site/src/app/layout.tsx"]:::entry
+  Home["Landing Page\nagito-site/src/app/page.tsx"]
+  AuthRoutes["Auth Routes\nagito-site/src/app/auth/"]
+  DevRoutes["Dev Routes\nagito-site/src/app/dev/"]
+  Components["UI Components\nagito-site/src/components/"]
+  Lib["Lib / Utils\nagito-site/src/lib/"]
+  SupabaseClient["Supabase Client\n(auth)"]:::external
+  Polar["Polar\n(billing redirect)"]:::external
+  AgitoServer["@agito-server\n(API)"]:::external
+
+  Layout -->|"wraps"| Home
+  Layout -->|"wraps"| AuthRoutes
+  Layout -->|"wraps"| DevRoutes
+  AuthRoutes -->|"OAuth callback"| SupabaseClient
+  Home -->|"billing CTA"| Polar
+  DevRoutes -->|"internal tooling"| AgitoServer
+  Components -->|"used by"| Home
+  Components -->|"used by"| AuthRoutes
+  Lib -->|"supabase helpers"| SupabaseClient

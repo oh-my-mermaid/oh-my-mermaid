@@ -1,0 +1,6 @@
+- [ ] Extract `parseMermaid` from `diff.ts` into a dedicated `src/lib/parse.ts` module to clarify ownership.
+- [ ] Add result caching to `getIncomingRefs()` (or `buildRefGraph()`) keyed on file mtimes to avoid O(n) re-scans.
+- [ ] Tighten the `@ref` pattern to only match known class names (validate against `listClasses()` before treating as a ref).
+- [ ] Add diagram-type detection to validation so non-flowchart diagrams skip flowchart-specific rules.
+- [ ] Improve the Mermaid parser to handle multi-line node labels and nested bracket edge cases.
+- [ ] Add a `--json` flag to `omm validate` and `omm diff` for machine-readable output (useful for CI pipelines).

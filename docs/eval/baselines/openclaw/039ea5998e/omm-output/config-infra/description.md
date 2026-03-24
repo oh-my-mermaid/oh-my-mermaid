@@ -1,0 +1,1 @@
+Configuration, infrastructure primitives, security, and daemon management. Owns all persistent config reads/writes, archive/backup strategies, binary management, abort signals, backoff utilities, and the long-running daemon process that keeps the gateway alive across restarts.

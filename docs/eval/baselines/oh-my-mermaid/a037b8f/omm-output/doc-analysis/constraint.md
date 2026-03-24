@@ -1,0 +1,5 @@
+- The Mermaid parser in `diff.ts` is regex-based and does not handle all Mermaid syntax; sequence diagrams, class diagrams, ER diagrams, gantt, pie, and gitGraph are not parsed (edges/nodes won't be extracted).
+- Diff requires `prev_diagram` to exist in `meta.yaml`; if no previous diagram was saved, diff returns "no diff available".
+- The `@ref` pattern in refs matches any `@word` token — it cannot distinguish between actual class cross-references and `@` symbols used in other contexts (e.g., email addresses in comments).
+- Validation checks `classDef` colors against exact hex values; case-insensitive comparison is used but alternative color formats (rgb, hsl) are not recognized.
+- `ref-exists` and `ref-self` validation rules only run when a `ValidateContext` is provided (with `className` and `allClasses`); standalone diagram validation skips them.

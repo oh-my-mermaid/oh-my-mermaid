@@ -1,0 +1,3 @@
+- src/gateway (~390) + src/routing (~11) + src/channels (~200) = ~601 files
+- agent-via-gateway.ts bridges the agents layer into the gateway dispatch path
+- channel-web.ts (src/channel-web.ts) is the HTTP/WebSocket channel adapter at root level

@@ -1,0 +1,1 @@
+Automated message handling layer. Detects inbound messages that match auto-reply rules, processes command detection, manages group activation triggers, dispatches heartbeat replies, and handles polling-based message delivery. Operates independently of interactive sessions.

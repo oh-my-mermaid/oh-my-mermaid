@@ -1,0 +1,5 @@
+- [ ] Extract common "write versioned manifest" logic from platform drivers into a shared `utils.ts` helper to reduce duplication.
+- [ ] Add atomic setup: write to temp location then rename, so partial failures don't leave broken state.
+- [ ] Add rollback support to `teardown()` — at minimum, move files to a backup before deleting.
+- [ ] Improve skills path resolution to handle monorepo layouts (search upward for `node_modules/oh-my-mermaid/skills/`).
+- [ ] Add `omm setup --check` flag that reports setup status without making changes (non-destructive audit).

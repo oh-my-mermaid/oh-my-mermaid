@@ -1,0 +1,5 @@
+- The regex Mermaid parser has known gaps: complex node labels with nested brackets or multi-line labels may be misidentified or skipped entirely.
+- `getIncomingRefs()` scans all class diagrams on every call — O(n) over all classes with no caching; will be slow on large repos with many classes.
+- The `@ref` false-positive risk: any `@word` in a diagram comment or node label will be treated as a class reference, including email addresses or decorators.
+- Validation does not distinguish between diagram types; applying `graph LR` declaration rules to a sequence or class diagram would produce false errors.
+- `parseMermaid` is defined in `diff.ts` but also imported by `validate.ts` — the module ownership is unclear (parser logic lives in the diff module, not a dedicated parse module).

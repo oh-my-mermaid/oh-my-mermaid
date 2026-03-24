@@ -1,0 +1,3 @@
+- Remove auth-choice-legacy.ts and unify auth choice flows
+- Add unknown-command feedback instead of silent fallback
+- Add atomic rollback to agent bind/unbind on partial failure

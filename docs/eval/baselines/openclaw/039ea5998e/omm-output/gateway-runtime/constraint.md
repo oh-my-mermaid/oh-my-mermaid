@@ -1,0 +1,5 @@
+- Auth must complete before call.ts executes — no unauthenticated dispatch
+- Rate-limit enforcement is global across all channels for a given user identity
+- Channel health policy (channel-health-policy.ts) must gate routing; unhealthy channels must not receive messages
+- Abort signals must be respected within one streaming chunk boundary
+- assistant-identity resolution is per-channel and must not leak cross-channel identity

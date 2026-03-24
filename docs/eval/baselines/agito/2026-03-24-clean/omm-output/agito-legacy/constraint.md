@@ -1,0 +1,4 @@
+- Bun runtime required (bun.lock, bunfig.toml) — not compatible with Node.js/npm/pnpm
+- Do not run bun install in legacy without understanding impact on node_modules shared with v2
+- This is NOT deployed to production; treat as read-only reference unless explicitly migrating code
+- MCP server packages depend on the MCP SDK; version compatibility with current MCP spec is unverified

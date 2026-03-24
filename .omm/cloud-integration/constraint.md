@@ -1,0 +1,7 @@
+- Credentials are stored globally in `~/.omm/credentials.json` (not per-project); one login applies to all projects.
+- The project-cloud binding (`cloud.project_slug`) must be set via `omm link` before `omm push` or `omm pull` will work.
+- Push sends the entire `.omm/` directory — there is no incremental/delta sync.
+- Pull overwrites local `.omm/` files without a merge step; local-only changes will be lost.
+- The `OMM_API_URL` env override only affects `apiRequest`; login flow URLs may still hardcode production.
+- Org membership management (`omm org members`) opens a browser URL rather than using the API — it is not fully CLI-driven.
+- Token is sent as a Bearer header on every request; there is no refresh token mechanism.

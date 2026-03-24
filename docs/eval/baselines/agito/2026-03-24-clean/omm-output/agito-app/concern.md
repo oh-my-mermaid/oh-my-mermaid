@@ -1,0 +1,5 @@
+- PTY session lifecycle: orphaned node-pty processes if Electron crashes before cleanup
+- IPC channel type safety: preload bridge.ts hand-maintained; drift between main/renderer types is silent
+- sql.js WASM load time in renderer adds cold-start latency
+- Electron auto-update not yet implemented; users on stale binaries receive no migration path
+- PixiJS canvas memory leak risk if sprites are not explicitly destroyed on character removal

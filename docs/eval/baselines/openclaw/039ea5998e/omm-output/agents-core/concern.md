@@ -1,0 +1,3 @@
+- Auth profile failures (markauthprofilefailure) can cascade: all profiles can enter cooldown simultaneously leaving no usable credentials
+- ACP spawn creates unbounded child processes if the parent stream is never closed
+- apply-patch has no dry-run mode in production path — patch application is irreversible without git

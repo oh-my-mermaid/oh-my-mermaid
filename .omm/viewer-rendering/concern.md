@@ -1,2 +1,0 @@
-- Single large HTML file (~2000+ lines) with inline CSS and JS — hard to maintain as complexity grows; no component abstraction
-- Custom Mermaid parser is a subset of Mermaid syntax — edge cases in Mermaid spec may not render correctly

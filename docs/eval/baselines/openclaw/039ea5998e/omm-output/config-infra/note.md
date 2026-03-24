@@ -1,0 +1,3 @@
+- src/config (~252) + src/infra (~506) + src/security (~35) + src/daemon (~54) = ~847 files
+- src/infra is the second-largest subsystem after agents-core
+- bonjour-ciao.ts enables local network service discovery for multi-device setups

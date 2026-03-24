@@ -1,0 +1,1 @@
+User-facing command layer. Implements all slash-commands and inline commands dispatched during a chat session: agent management (add/bind/delete/list), auth flows, wizard setup, and ephemeral session actions. Commands are dispatched from the gateway layer after message parsing.

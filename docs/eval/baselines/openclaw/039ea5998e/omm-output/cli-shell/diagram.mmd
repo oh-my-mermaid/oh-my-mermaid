@@ -1,0 +1,24 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  entry["Entry Point\nsrc/entry.ts"]:::entry
+  argv["Argv Parser\nsrc/cli/argv.ts"]
+  banner["Banner/TUI\nsrc/cli/banner.ts"]
+  tui["TUI Shell\nsrc/tui/"]
+  browser_cli["Browser CLI\nsrc/cli/browser-cli.ts"]
+  channel_cli["Channel Auth CLI\nsrc/cli/channel-auth.ts"]
+  channels_cli["Channels CLI\nsrc/cli/channels-cli.ts"]
+  acp_cli["ACP CLI\nsrc/cli/acp-cli.ts"]
+
+  entry -->|"parses args"| argv
+  entry -->|"renders"| banner
+  banner -->|"launches"| tui
+  argv -->|"routes to"| browser_cli
+  argv -->|"routes to"| channel_cli
+  argv -->|"routes to"| channels_cli
+  argv -->|"routes to"| acp_cli
+  browser_cli -->|"controls"| ext_browser["Browser\n@browser"]:::external
+  acp_cli -->|"spawns"| ext_gateway["Gateway\n@gateway-runtime"]:::external

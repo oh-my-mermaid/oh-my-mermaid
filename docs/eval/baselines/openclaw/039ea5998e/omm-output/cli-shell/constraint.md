@@ -1,0 +1,5 @@
+- Must remain the single argv parse point; no other module parses process.argv
+- Banner and TUI are purely presentational — no business logic
+- Browser-CLI actions must not import gateway internals directly
+- Respawn logic in entry.ts must not be removed or moved to a different module
+- ACP CLI must delegate all execution to the gateway layer (@gateway-runtime)

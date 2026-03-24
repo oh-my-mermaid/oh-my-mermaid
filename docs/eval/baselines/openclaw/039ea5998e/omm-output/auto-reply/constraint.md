@@ -1,0 +1,4 @@
+- Auto-reply dispatch must never block the polling loop — all handlers must be async with timeouts
+- Command auth in auto-reply context is separate from interactive command auth; do not share state
+- Group activation must require explicit mention or trigger keyword; passive activation is not permitted
+- Heartbeat replies must be idempotent — duplicate delivery must not cause duplicate responses

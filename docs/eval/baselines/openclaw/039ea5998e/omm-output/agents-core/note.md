@@ -1,0 +1,3 @@
+- ~935 files — the largest subsystem, nearly 2x the next largest
+- Anthropic payload logging (anthropic-payload-log.ts) is enabled in debug mode; ensure PII scrubbing before any log export
+- auth-profiles.external-cli-sync.ts syncs credentials from external CLI tools (e.g., aws-cli, gcloud)

@@ -1,0 +1,3 @@
+- Add per-hook timeout with automatic skip and warning log
+- Add configurable TTL and size cap to memory store
+- Add plugin signature verification to the loader

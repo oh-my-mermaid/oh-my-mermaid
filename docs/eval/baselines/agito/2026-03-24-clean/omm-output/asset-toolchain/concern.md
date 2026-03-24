@@ -1,0 +1,4 @@
+- No error handling for Gemini API quota exhaustion mid-batch run; partial outputs require manual cleanup
+- Scripts are not idempotent — re-running overwrites previously generated and manually curated assets
+- No version tracking for generated assets; unclear which script version produced which builtin-asset
+- lockscreen_gen.py appears unrelated to in-game assets — may be personal tooling accidentally committed to repo root

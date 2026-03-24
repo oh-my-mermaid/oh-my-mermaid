@@ -1,0 +1,28 @@
+graph LR
+  classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+  classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+  classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+  classDef concern fill:#f38ba8,stroke:#f38ba8,color:#1e1e2e
+
+  LoginCmd["omm login\nsrc/commands/login.ts"]:::entry
+  PushCmd["omm push\nsrc/commands/push.ts"]:::entry
+  PullCmd["omm pull\nsrc/commands/pull.ts"]:::entry
+  LinkCmd["omm link\nsrc/commands/link.ts"]:::entry
+  ShareCmd["omm share\nsrc/commands/share.ts"]:::entry
+  OrgCmd["omm org\nsrc/commands/org.ts"]:::entry
+  CloudLib["Cloud Auth/API\nsrc/lib/cloud.ts"]:::store
+  Credentials["~/.omm/credentials.json\ntoken, handle, default_org"]:::store
+  ConfigYAML[".omm/config.yaml\ncloud.project_slug"]:::store
+  OmmAPI["omm.dev API\nhttps://ohmymermaid.com"]:::external
+  StoreAPI["Store API\n@cli-core"]:::store
+
+  LoginCmd -->|"saves token via"| CloudLib
+  CloudLib -->|"persists to"| Credentials
+  PushCmd -->|"walks files via"| StoreAPI
+  PushCmd -->|"uploads via"| CloudLib
+  PullCmd -->|"downloads via"| CloudLib
+  PullCmd -->|"writes files via"| StoreAPI
+  LinkCmd -->|"sets slug in"| ConfigYAML
+  ShareCmd -->|"reads slug from"| ConfigYAML
+  OrgCmd -->|"calls API via"| CloudLib
+  CloudLib -->|"authenticates to"| OmmAPI

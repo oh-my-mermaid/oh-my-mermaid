@@ -1,0 +1,6 @@
+- `omm pull` silently overwrites local files — no dry-run or confirmation prompt before destructive overwrite.
+- Push sends file contents in a single JSON body; large `.omm/` directories could hit API payload size limits.
+- No conflict detection: if local and cloud have diverged, the last push/pull wins with no warning.
+- Token stored in plaintext JSON (even at mode 0o600) — no keychain/secret-store integration.
+- No retry or timeout logic in `apiRequest`; network failures produce raw fetch errors without user-friendly messages.
+- The `cloud_paths.ts` module is separate from `cloud.ts` — the split of cloud path utilities may cause confusion about where cloud-related logic lives.

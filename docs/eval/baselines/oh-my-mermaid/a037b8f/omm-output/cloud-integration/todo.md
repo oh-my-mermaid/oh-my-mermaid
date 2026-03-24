@@ -1,0 +1,6 @@
+- [ ] Add `--dry-run` flag to `omm pull` showing what would be overwritten before committing.
+- [ ] Implement conflict detection: compare git commit in cloud meta vs. local before push/pull.
+- [ ] Add retry logic with exponential backoff to `apiRequest` for transient network failures.
+- [ ] Explore OS keychain integration (macOS Keychain, Linux Secret Service) for secure token storage.
+- [ ] Add incremental push: only upload files changed since last push (using meta timestamps or git diff).
+- [ ] Add request timeout to `apiRequest` (currently uses default fetch timeout which is effectively infinite).

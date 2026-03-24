@@ -1,0 +1,6 @@
+- Server is local-only by design; it listens on localhost and requires no authentication.
+- Default port is 3000; auto-increments on collision up to one retry level.
+- The API is read-only — no write endpoints exposed via HTTP; all writes go through the CLI store layer.
+- `viewer.html` must be co-located with the compiled JS in `dist/`; the server looks in multiple candidate paths for dev vs. prod.
+- SSE connections are kept alive for the duration of the browser session; no heartbeat or reconnect logic is implemented.
+- No HTTPS support — local viewer is HTTP only.

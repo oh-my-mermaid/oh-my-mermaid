@@ -1,0 +1,3 @@
+- Rate limit state is in-memory only; restarts reset all counters creating fairness gaps
+- Channel health status patches (channel-status-patches.ts) can desync from actual channel state under network partition
+- Chat abort relies on signal propagation which can be lost if the call stack is deep

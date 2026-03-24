@@ -1,0 +1,26 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  agent_ts["Agent\nsrc/agents/agent.ts"]:::entry
+  auth_profiles["Auth Profiles\nsrc/agents/auth-profiles/"]:::store
+  api_key_rot["API Key Rotation\nsrc/agents/api-key-rotation.ts"]:::concern
+  providers["Providers\nsrc/agents/agents.providers.ts"]
+  anthropic["Anthropic Provider\nsrc/agents/anthropic-vertex-provider.ts"]:::external
+  acp_spawn["ACP Spawn\nsrc/agents/acp-spawn.ts"]
+  agent_prompt["Agent Prompt\nsrc/agents/agent-prompt.ts"]
+  apply_patch["Apply Patch\nsrc/agents/apply-patch.ts"]
+  agent_scope["Agent Scope\nsrc/agents/agent-scope.ts"]
+  agent_paths["Agent Paths\nsrc/agents/agent-paths.ts"]:::store
+
+  agent_ts -->|"loads"| auth_profiles
+  agent_ts -->|"selects"| providers
+  providers -->|"connects to"| anthropic
+  auth_profiles -->|"rotates via"| api_key_rot
+  agent_ts -->|"assembles"| agent_prompt
+  agent_ts -->|"spawns"| acp_spawn
+  agent_ts -->|"applies"| apply_patch
+  agent_ts -->|"scoped by"| agent_scope
+  agent_scope -->|"resolves"| agent_paths

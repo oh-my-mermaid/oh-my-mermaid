@@ -1,0 +1,1 @@
+CLI entry point and shell. Parses argv, renders the terminal UI (TUI/banner), manages browser-CLI actions, and bootstraps the runtime. All user-initiated sessions start here before being handed to the gateway or command layer.

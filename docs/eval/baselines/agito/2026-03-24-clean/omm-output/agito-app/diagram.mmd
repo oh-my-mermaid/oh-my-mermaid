@@ -1,0 +1,31 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  Main["Main Process\nagito-app/src/main/index.ts"]:::entry
+  Engine["Engine Runner\nagito-app/src/main/engine/"]:::entry
+  IPC["IPC Bridge\nagito-app/src/preload/bridge.ts"]
+  Renderer["Renderer Process\nagito-app/src/renderer/src/App.tsx"]
+  World["Office Canvas\nagito-app/src/renderer/src/world/OfficeCanvas.tsx"]
+  Terminal["Terminal Panel\nagito-app/src/renderer/src/panel/"]
+  Store["Zustand Stores\nagito-app/src/renderer/src/stores/"]:::store
+  Shared["Shared Types\nagito-app/src/shared/types.ts"]
+  PTY["node-pty\n(subprocess)"]:::external
+  PixiJS["PixiJS\n(@pixi/react)"]:::external
+  Server["@agito-server\n(image gen API)"]:::external
+
+  Main -->|"spawns engine"| Engine
+  Engine -->|"PTY spawn"| PTY
+  Main -->|"exposes contextBridge"| IPC
+  IPC -->|"typed channels"| Renderer
+  Renderer -->|"renders world"| World
+  World -->|"PixiJS sprites"| PixiJS
+  Renderer -->|"mounts"| Terminal
+  Terminal -->|"reads/writes PTY"| IPC
+  Renderer -->|"subscribes"| Store
+  Store -->|"persists"| Main
+  Main -->|"calls"| Server
+  Shared -->|"types shared by"| Main
+  Shared -->|"types shared by"| Renderer

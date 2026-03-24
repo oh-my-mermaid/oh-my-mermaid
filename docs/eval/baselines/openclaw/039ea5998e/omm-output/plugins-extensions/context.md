@@ -1,0 +1,8 @@
+- src/plugin-sdk/ — public SDK surface for plugin authors
+- src/plugins/ — ~209 files, internal plugin registry and loader
+- src/hooks/ — ~50 files, hook registration and execution pipeline
+- src/sessions/ — ~15 files, session lifecycle (create, resume, expire)
+- src/memory/ — ~105 files, persistent conversation memory store
+- src/extensionAPI.ts — bridge between gateway and plugin SDK
+- extensions/ — third-party and bundled extension implementations
+- src/plugin-sdk/core, sandbox, provider-setup, ollama-setup — SDK sub-modules

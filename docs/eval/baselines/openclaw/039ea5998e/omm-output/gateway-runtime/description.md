@@ -1,0 +1,1 @@
+Core execution engine. Receives inbound messages from all channels, routes them through auth and rate-limit policies, dispatches to the appropriate agent or command handler, and streams responses back. Also manages channel health monitoring, chat abort, and canvas capabilities.

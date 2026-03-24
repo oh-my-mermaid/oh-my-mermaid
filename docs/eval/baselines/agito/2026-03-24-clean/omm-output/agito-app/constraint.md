@@ -1,0 +1,6 @@
+- Must NOT call Anthropic APIs directly or manage user API keys — users bring their own CLI (ToS compliance)
+- node-pty and keytar are native modules; must rebuild per Electron version via electron-builder install-app-deps
+- PixiJS v7 is pinned (not v8) due to @pixi/react compatibility
+- sql.js (WASM SQLite) used instead of better-sqlite3 to avoid native module complexity in renderer
+- Electron context isolation is required: all IPC must go through preload/bridge.ts typed channels
+- pnpm is mandatory (npm/yarn breaks node-pty native rebuild steps)

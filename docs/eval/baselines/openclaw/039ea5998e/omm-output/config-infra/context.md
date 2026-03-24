@@ -1,0 +1,10 @@
+- src/config/ — ~252 files, all persistent configuration schemas and readers
+- src/infra/ — ~506 files, largest infra layer: archive, backup, backoff, binaries, bonjour, abort signals
+- src/security/ — ~35 files, security policy enforcement and audit
+- src/daemon/ — ~54 files, long-running background process management
+- src/secrets/ — secrets storage and encryption utilities
+- src/infra/archive.ts, archive-path.ts, archive-staging.ts — tiered archiving
+- src/infra/backup-create.ts — on-demand and scheduled backup creation
+- src/infra/backoff.ts — exponential backoff for retry logic
+- src/infra/abort-signal.ts — cross-layer abort signal coordination
+- src/infra/binaries.ts — managed binary download and version pinning

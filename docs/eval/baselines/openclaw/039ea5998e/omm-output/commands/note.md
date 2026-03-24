@@ -1,0 +1,3 @@
+- ~399 files — largest single commands directory in the repo
+- agents.commands.* follow a consistent subcommand pattern (add/bind/delete/list/identity)
+- command-detection.ts handles heuristic detection of inline commands in free-text messages

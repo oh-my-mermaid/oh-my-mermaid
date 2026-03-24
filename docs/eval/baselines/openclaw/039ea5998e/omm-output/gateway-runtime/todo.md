@@ -1,0 +1,3 @@
+- Persist rate-limit state to survive restarts
+- Add reconciliation loop for channel-status-patches vs real channel state
+- Improve abort signal propagation depth coverage

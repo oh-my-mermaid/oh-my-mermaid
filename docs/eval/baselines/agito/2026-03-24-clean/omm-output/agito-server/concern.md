@@ -1,0 +1,5 @@
+- generation_queue.py: async queue implementation — unclear if it persists across server restarts; jobs in-flight at crash are lost
+- rembg model download on first run adds cold-start time in fresh Docker containers
+- No rate limiting on generate endpoints; abuse risk if auth tokens are shared
+- Gemini API costs are unbounded per user request; no per-user quota enforcement visible in codebase
+- pipeline/generator_comfy.py suggests ComfyUI integration — status unclear (may be incomplete)

@@ -1,0 +1,1 @@
+Agent execution engine. Manages auth profiles, API key rotation, provider selection (Anthropic, Vertex, etc.), ACP spawn/stream, and the agent lifecycle from prompt assembly through response streaming. The largest subsystem (~935 files), responsible for all AI model interactions.

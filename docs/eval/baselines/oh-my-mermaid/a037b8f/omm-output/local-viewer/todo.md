@@ -1,0 +1,5 @@
+- [ ] Track and remove SSE clients on connection close to prevent memory leak.
+- [ ] Add `--open` flag to auto-open the browser on `omm view`.
+- [ ] Replace `</head>` string injection with a proper template token in `viewer.html`.
+- [ ] Implement graceful shutdown (SIGINT handler closes server and SSE connections).
+- [ ] Add SSE heartbeat (ping every 30s) to detect and remove stale connections.

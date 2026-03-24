@@ -1,0 +1,6 @@
+- Platform detection relies on `which <binary>` via `execSync` or checking for known config directories — no official detection API.
+- Setup writes files to the current working directory (project-scoped) for most platforms; some may require global config dirs.
+- The `skills/` directory must be present in the npm package install (listed in `files` in `package.json`) — local dev builds without it will fail setup.
+- Version matching in `isSetup()` is exact string equality; semver range matching is not supported.
+- Teardown is destructive and non-reversible: it removes the plugin/skill directory entirely.
+- Adding a new platform requires: a new driver file, updating `ALL_PLATFORMS` in `index.ts` — there is no plugin registration API.

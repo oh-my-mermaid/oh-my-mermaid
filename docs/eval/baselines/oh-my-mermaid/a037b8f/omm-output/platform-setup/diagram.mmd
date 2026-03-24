@@ -1,0 +1,27 @@
+graph LR
+  classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+  classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+  classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+  classDef concern fill:#f38ba8,stroke:#f38ba8,color:#1e1e2e
+
+  SetupCmd["omm setup\nsrc/commands/setup.ts"]:::entry
+  PlatformIndex["Platform Registry\nsrc/lib/platforms/index.ts"]:::store
+  PlatformType["Platform Interface\nsrc/lib/platforms/types.ts"]:::external
+  ClaudePlatform["Claude Code driver\nsrc/lib/platforms/claude.ts"]:::store
+  CursorPlatform["Cursor driver\nsrc/lib/platforms/cursor.ts"]:::store
+  CodexPlatform["Codex driver\nsrc/lib/platforms/codex.ts"]:::store
+  OtherPlatforms["OpenClaw/Antigravity\nsrc/lib/platforms/*.ts"]:::store
+  SkillsDir["skills/ directory\nskills/omm-scan etc."]:::external
+  PlatformUtils["Platform Utils\nsrc/lib/platforms/utils.ts"]:::store
+
+  SetupCmd -->|"queries"| PlatformIndex
+  PlatformIndex -->|"registers"| ClaudePlatform
+  PlatformIndex -->|"registers"| CursorPlatform
+  PlatformIndex -->|"registers"| CodexPlatform
+  PlatformIndex -->|"registers"| OtherPlatforms
+  ClaudePlatform -->|"implements"| PlatformType
+  CursorPlatform -->|"implements"| PlatformType
+  CodexPlatform -->|"implements"| PlatformType
+  ClaudePlatform -->|"reads skills from"| SkillsDir
+  CursorPlatform -->|"reads skills from"| SkillsDir
+  ClaudePlatform -->|"uses"| PlatformUtils

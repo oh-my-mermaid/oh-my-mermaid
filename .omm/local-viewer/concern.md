@@ -1,0 +1,5 @@
+- SSE clients are never cleaned up on connection drop — the client list grows indefinitely in long-running sessions, causing memory leaks.
+- The regex-based API router in `api.ts` does not handle malformed URLs gracefully; unusual path inputs could cause unexpected behavior.
+- No browser-open support: the user must manually navigate to the URL after running `omm view`.
+- `viewer.html` is served as a raw string with `replace('</head>', ...)` injection — fragile if the HTML structure changes.
+- No graceful shutdown: Ctrl-C kills the process abruptly without closing SSE connections or the HTTP server cleanly.

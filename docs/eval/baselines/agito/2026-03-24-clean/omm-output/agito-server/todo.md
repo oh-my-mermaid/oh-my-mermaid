@@ -1,0 +1,6 @@
+- Add per-user generation quota enforcement (currently unbounded Gemini API calls)
+- Add rate limiting middleware to FastAPI (e.g. slowapi)
+- Persist generation queue to DB so in-flight jobs survive server restarts
+- Pre-download rembg model in Dockerfile to eliminate cold-start delay
+- Clarify/complete generator_comfy.py ComfyUI integration or remove if abandoned
+- Add integration tests for billing webhook signature verification

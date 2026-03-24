@@ -1,0 +1,4 @@
+- Document which packages (if any) are still being migrated to v2 vs fully superseded
+- Consider moving agito-legacy to a separate git branch or archive repo to reduce confusion
+- Extract any reusable type definitions from codex-types/shared into agito-app/src/shared/
+- Add a clear DEPRECATED notice to agito-legacy/README.md

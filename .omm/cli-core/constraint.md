@@ -1,0 +1,7 @@
+- Field names are fixed to exactly 7 values defined in `VALID_FIELDS` (src/types.ts); no custom fields allowed.
+- `.omm/` directory must be at the project root (process.cwd()); no support for nested or alternative locations.
+- Only one config format: YAML via the `yaml` package. No JSON config.
+- Read commands (`list`, `show`, `status`, `diff`, `refs`, `validate`) do not auto-create `.omm/`; they exit with an error message instead.
+- Write commands auto-create `.omm/` with a warning to stderr. This is the lazy-init contract.
+- `meta.yaml` is updated on every field write; git info is captured via `execSync` and silently omitted if git is unavailable.
+- The `prev_diagram` field in meta is only preserved for the `diagram` field (not other fields).

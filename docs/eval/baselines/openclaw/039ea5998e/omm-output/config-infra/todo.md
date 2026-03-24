@@ -1,0 +1,3 @@
+- Add cleanup pass for orphaned archive-staging files on daemon startup
+- Add opt-in flag for Bonjour broadcasting (default off)
+- Move binary URLs to signed manifest with hash verification

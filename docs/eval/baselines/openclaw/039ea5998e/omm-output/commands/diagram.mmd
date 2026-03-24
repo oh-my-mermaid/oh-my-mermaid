@@ -1,0 +1,24 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  registry["Commands Registry\nsrc/commands/commands-registry.ts"]:::entry
+  dispatch["Dispatcher\nsrc/commands/dispatch.ts"]
+  agent_cmds["Agent Commands\nsrc/commands/agents.commands.*.ts"]
+  auth_choice["Auth Choice\nsrc/commands/auth-choice.ts"]
+  wizard["Wizard\nsrc/wizard/"]
+  chunk["Chunk/Envelope\nsrc/commands/chunk.ts"]
+  fallback["Fallback State\nsrc/commands/fallback-state.ts"]
+  bindings["Agent Bindings\nsrc/commands/agents.bindings.ts"]
+
+  registry -->|"resolves"| dispatch
+  dispatch -->|"routes to"| agent_cmds
+  dispatch -->|"routes to"| auth_choice
+  dispatch -->|"routes to"| wizard
+  dispatch -->|"wraps in"| chunk
+  dispatch -->|"fallback to"| fallback
+  agent_cmds -->|"manages"| bindings
+  auth_choice -->|"delegates to"| ext_agents["Agents Core\n@agents-core"]:::external
+  registry -->|"data"| reg_data["Registry Data\nsrc/commands/commands-registry.data.ts"]:::store

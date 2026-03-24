@@ -1,0 +1,3 @@
+- Add explicit timeout option to browser-cli-manage connections
+- Consolidate banner-config-lite and banner.ts to single config path
+- Add integration test for respawn guard condition

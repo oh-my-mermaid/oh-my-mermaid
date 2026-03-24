@@ -1,0 +1,1 @@
+Uses pnpm-workspace.yaml (single-package workspace), not a true monorepo. The components/ and lib/ directories at src/ level follow the shadcn/ui convention (components.json present). The /auth and /dev route groups use Next.js route group parentheses syntax (parentheses directories visible in src/app/).

@@ -1,0 +1,5 @@
+- Next.js 16 App Router — pages directory is not used; all routing is under src/app/
+- React 19 (not 18) — some third-party components may not yet be compatible
+- Tailwind CSS v4 (PostCSS plugin, not the v3 config file pattern)
+- Supabase auth callback URLs must be registered in Supabase dashboard (redirect URL allowlist)
+- No server actions calling agito-server directly — browser fetches only; no secret API keys in client bundle

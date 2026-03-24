@@ -1,0 +1,34 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  API["FastAPI App\nagito-server/src/agito_server/main.py"]:::entry
+  Router["API Router\nagito-server/src/agito_server/api/router.py"]
+  GenAPI["Generate Endpoint\nagito-server/src/agito_server/api/generate.py"]
+  BillingAPI["Billing Endpoint\nagito-server/src/agito_server/api/billing.py"]
+  Auth["Auth Middleware\nagito-server/src/agito_server/auth.py"]
+  Queue["Generation Queue\nagito-server/src/agito_server/generation_queue.py"]
+  Pipeline["Pipeline\nagito-server/src/agito_server/pipeline/"]
+  Generator["Generator\nagito-server/src/agito_server/pipeline/generator.py"]
+  Processor["Processor\nagito-server/src/agito_server/pipeline/processor.py"]
+  Storage["Generation Storage\nagito-server/src/agito_server/generation_storage.py"]
+  DB["PostgreSQL\n(psycopg + SQLAlchemy)"]:::store
+  Gemini["Gemini API\n(google-genai)"]:::external
+  Supabase["Supabase\n(auth + storage)"]:::external
+  Polar["Polar SDK\n(billing)"]:::external
+
+  API -->|"mounts"| Router
+  Router -->|"routes to"| GenAPI
+  Router -->|"routes to"| BillingAPI
+  Auth -->|"validates JWT"| Supabase
+  GenAPI -->|"enqueues job"| Queue
+  Queue -->|"runs"| Pipeline
+  Pipeline -->|"calls"| Generator
+  Generator -->|"image gen"| Gemini
+  Pipeline -->|"calls"| Processor
+  Processor -->|"removes bg"| Storage
+  Storage -->|"writes"| DB
+  Storage -->|"uploads"| Supabase
+  BillingAPI -->|"checkout/webhook"| Polar

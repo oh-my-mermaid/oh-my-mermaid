@@ -1,0 +1,11 @@
+- src/gateway/ — ~390 files, the largest execution layer
+- src/gateway/boot.ts — gateway boot sequence and dependency wiring
+- src/gateway/auth.ts — inbound request authentication
+- src/gateway/auth-rate-limit.ts — per-user rate limiting
+- src/gateway/call.ts — main dispatch loop
+- src/routing/ — ~11 files, message routing policies
+- src/channels/ — ~200 files, channel adapters (Slack, Discord, Telegram, etc.)
+- src/gateway/channel-health-monitor.ts — tracks channel up/down status
+- src/gateway/chat-abort.ts — handles mid-stream abort signals
+- src/gateway/canvas-capability.ts — canvas rendering integration
+- src/gateway/assistant-identity.ts — per-channel bot identity resolution

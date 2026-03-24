@@ -1,0 +1,3 @@
+- Add circuit-breaker for auth profile cooldown cascade
+- Add child-process cap to ACP spawn with backpressure
+- Implement dry-run mode for apply-patch in gateway context

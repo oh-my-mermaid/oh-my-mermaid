@@ -1,0 +1,24 @@
+graph LR
+  classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+  classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+  classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+  classDef concern fill:#f38ba8,stroke:#f38ba8,color:#1e1e2e
+
+  CLI["omm binary\nsrc/cli.ts"]:::entry
+  Dispatch["Command Dispatcher\nsrc/cli.ts#main"]:::entry
+  StoreAPI["Store API\nsrc/lib/store.ts"]:::store
+  MetaLib["Meta Updater\nsrc/lib/meta.ts"]:::store
+  Types["Type Definitions\nsrc/types.ts"]:::external
+  ConfigYAML["config.yaml\n.omm/config.yaml"]:::store
+  MetaYAML["meta.yaml\n.omm/<class>/meta.yaml"]:::store
+  FieldFiles["Field Files\n.omm/<class>/*.md|*.mmd"]:::store
+  ClassField["class-field cmd\nsrc/commands/class-field.ts"]:::entry
+
+  CLI -->|"parses argv"| Dispatch
+  Dispatch -->|"routes to"| ClassField
+  ClassField -->|"read/write via"| StoreAPI
+  StoreAPI -->|"persists"| FieldFiles
+  StoreAPI -->|"tracks metadata"| MetaLib
+  MetaLib -->|"writes"| MetaYAML
+  StoreAPI -->|"creates on init"| ConfigYAML
+  StoreAPI -->|"uses schema from"| Types

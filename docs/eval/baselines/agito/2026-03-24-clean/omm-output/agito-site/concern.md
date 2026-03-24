@@ -1,0 +1,4 @@
+- /dev routes appear to be unauthenticated internal tooling pages — risk of accidental public exposure in production build
+- Shared Supabase project between site and desktop app means a compromised site token grants desktop app auth
+- React 19 + Next.js 16 combination is very new; edge cases in RSC/streaming may surface
+- No visible CSP headers or security middleware in next.config.ts

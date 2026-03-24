@@ -1,0 +1,22 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  plugin_sdk["Plugin SDK\nsrc/plugin-sdk/"]:::entry
+  plugins["Plugin Registry\nsrc/plugins/"]:::store
+  hooks["Hooks\nsrc/hooks/"]
+  sessions["Sessions\nsrc/sessions/"]:::store
+  memory["Memory\nsrc/memory/"]:::store
+  ext_api["Extension API\nsrc/extensionAPI.ts"]:::entry
+  ext_plugins["Extensions Dir\nextensions/"]:::external
+
+  plugin_sdk -->|"exposes API to"| ext_plugins
+  ext_plugins -->|"registers in"| plugins
+  plugins -->|"fires"| hooks
+  hooks -->|"modifies"| sessions
+  sessions -->|"persists to"| memory
+  ext_api -->|"bridges"| plugin_sdk
+  ext_api -->|"accesses"| sessions
+  memory -->|"scoped by"| ext_scope["Agent Scope\n@agents-core"]:::external

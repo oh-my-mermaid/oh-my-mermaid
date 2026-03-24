@@ -1,0 +1,28 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  CyanChroma["Cyan Crystal Gen\ngito_cyan_chroma.py"]:::entry
+  MineralGen["Mineral Sprite Gen\ngito_mineral_gen.py"]:::entry
+  MagicCrystal["Magic Crystal Gen\ngito_magic_crystal_gen.py"]:::entry
+  LockscreenGen["Lockscreen Gen\nlockscreen_gen.py"]:::entry
+  SplitCareful["Sprite Splitter (careful)\ngito_split_careful.py"]
+  SplitFlood["Sprite Splitter (floodfill)\ngito_split_floodfill.py"]
+  Pillow["Pillow\n(image processing)"]:::external
+  Gemini["Gemini API\n(google-genai)"]:::external
+  ServerPipeline["@agito-server\n(generation pipeline)"]:::external
+  OutputAssets["Output Sprites\nagito-app/builtin-assets/"]:::store
+
+  CyanChroma -->|"generates via"| Gemini
+  CyanChroma -->|"removes chroma key"| Pillow
+  MineralGen -->|"calls pipeline"| ServerPipeline
+  MineralGen -->|"splits sheet"| SplitCareful
+  MagicCrystal -->|"generates via"| Gemini
+  MagicCrystal -->|"removes bg"| Pillow
+  LockscreenGen -->|"generates via"| Gemini
+  SplitFlood -->|"flood-fill split"| Pillow
+  CyanChroma -->|"saves to"| OutputAssets
+  MineralGen -->|"saves to"| OutputAssets
+  MagicCrystal -->|"saves to"| OutputAssets

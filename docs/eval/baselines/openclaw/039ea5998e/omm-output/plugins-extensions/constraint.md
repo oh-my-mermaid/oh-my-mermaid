@@ -1,0 +1,5 @@
+- Plugins must only interact with the system through the plugin SDK surface; direct imports of internal modules are forbidden
+- Hooks must be non-blocking; synchronous hooks that throw must not crash the gateway
+- Session state must not be shared across different user sessions
+- Memory writes must be scoped to the owning agent scope; cross-agent memory reads require explicit permission
+- Plugin sandbox mode must isolate file system and network access for untrusted plugins

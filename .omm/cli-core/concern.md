@@ -1,0 +1,5 @@
+- No argument parser library: the manual `process.argv` switch in `cli.ts` will become brittle as commands grow (flag combinations, subcommands).
+- `execSync` for git info in `meta.ts` is synchronous and will block on slow git operations (large repos, network mounts).
+- No locking on concurrent writes to the same class directory; parallel AI agent writes could corrupt `meta.yaml`.
+- The `prev_diagram` field is stored inline in `meta.yaml` — for large diagrams this inflates the meta file significantly.
+- No migration path: if field filenames or the config schema change, existing `.omm/` directories will silently mismatch.

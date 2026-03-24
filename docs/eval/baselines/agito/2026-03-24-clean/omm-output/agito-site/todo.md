@@ -1,0 +1,4 @@
+- Audit /dev routes and add authentication guard before production deployment
+- Add Content Security Policy headers in next.config.ts
+- Add E2E tests for Supabase OAuth callback flow
+- Validate React 19 + Next.js 16 compatibility with all shadcn/ui components in use

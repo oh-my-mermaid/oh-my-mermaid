@@ -1,0 +1,9 @@
+- src/entry.ts — main binary entry, handles respawn and version fast-path
+- src/cli/argv.ts — full argv parsing and routing
+- src/cli/banner.ts — startup banner and terminal detection
+- src/tui/ — terminal UI components (~47 files)
+- src/cli/browser-cli*.ts — browser control CLI actions, state, inspect, manage, resize
+- src/cli/channel-auth.ts, channels-cli.ts — channel authentication flows
+- src/cli/acp-cli.ts — ACP (agent-to-agent protocol) CLI entry
+- src/cli/channel-options.ts — shared channel option builders
+- src/bootstrap/ — early bootstrap utilities

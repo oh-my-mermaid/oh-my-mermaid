@@ -1,0 +1,26 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  ElectronApp["Electron App\nagito-legacy/apps/electron/"]:::entry
+  Viewer["Viewer App\nagito-legacy/apps/viewer/"]
+  Core["Core Package\nagito-legacy/packages/core/"]
+  Shared["Shared Package\nagito-legacy/packages/shared/"]
+  UI["UI Package\nagito-legacy/packages/ui/"]
+  SessionMCP["Session MCP Server\nagito-legacy/packages/session-mcp-server/"]
+  BridgeMCP["Bridge MCP Server\nagito-legacy/packages/bridge-mcp-server/"]
+  CodexTypes["Codex Types\nagito-legacy/packages/codex-types/"]
+  Mermaid["Mermaid Package\nagito-legacy/packages/mermaid/"]
+  AgitoV2["@agito-app\n(v2 rewrite)"]:::external
+
+  ElectronApp -->|"imports"| Core
+  ElectronApp -->|"imports"| Shared
+  ElectronApp -->|"imports"| UI
+  ElectronApp -->|"connects to"| SessionMCP
+  SessionMCP -->|"bridges via"| BridgeMCP
+  BridgeMCP -->|"uses types"| CodexTypes
+  Viewer -->|"reads"| Mermaid
+  Core -->|"superceded by"| AgitoV2
+  Shared -->|"partially migrated to"| AgitoV2

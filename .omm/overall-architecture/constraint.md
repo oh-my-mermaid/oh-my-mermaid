@@ -1,3 +1,0 @@
-- Server is strictly read-only: never write `.omm/` data through HTTP API, only through the CLI
-- All `.omm/` content must be plain text (markdown or mermaid) — no binary files
-- Cloud credentials stored only in `~/.omm/credentials.json`, never in `.omm/` or git

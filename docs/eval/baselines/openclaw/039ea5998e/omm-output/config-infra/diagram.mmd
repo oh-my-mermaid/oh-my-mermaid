@@ -1,0 +1,26 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  config["Config\nsrc/config/"]:::store
+  daemon["Daemon\nsrc/daemon/"]:::entry
+  infra["Infra Primitives\nsrc/infra/"]
+  security["Security\nsrc/security/"]
+  archive["Archive\nsrc/infra/archive.ts"]:::store
+  backup["Backup\nsrc/infra/backup-create.ts"]:::store
+  backoff["Backoff\nsrc/infra/backoff.ts"]
+  abort["Abort Signal\nsrc/infra/abort-signal.ts"]:::concern
+  binaries["Binaries\nsrc/infra/binaries.ts"]
+  secrets["Secrets\nsrc/secrets/"]:::concern
+
+  daemon -->|"reads"| config
+  daemon -->|"uses"| infra
+  infra -->|"archives to"| archive
+  infra -->|"backs up via"| backup
+  infra -->|"retries with"| backoff
+  infra -->|"cancels via"| abort
+  infra -->|"manages"| binaries
+  security -->|"guards"| config
+  config -->|"encrypts via"| secrets

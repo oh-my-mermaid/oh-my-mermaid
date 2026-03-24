@@ -1,0 +1,5 @@
+- [ ] Replace manual argv parsing with a lightweight arg parser to handle flag edge cases cleanly.
+- [ ] Add file locking (or atomic write via temp file + rename) to prevent concurrent write corruption.
+- [ ] Move `prev_diagram` storage out of meta.yaml into a separate `.omm/<class>/prev_diagram.mmd` file.
+- [ ] Add schema version to `config.yaml` and a migration runner for future field renames.
+- [ ] Consider async git info capture (non-blocking) to avoid blocking on slow git operations.

@@ -1,0 +1,3 @@
+- Archive staging (archive-staging.ts) can leave orphaned staging files if process is killed mid-write
+- Bonjour/Ciao service discovery (bonjour-ciao.ts) broadcasts on LAN — potential unintended service exposure
+- Binary version pinning (binaries.ts) tied to hardcoded URLs; supply-chain risk if upstream URLs are compromised

@@ -1,0 +1,1 @@
+Python FastAPI backend service (containerised via Dockerfile). Provides image generation (Gemini API pipeline with rembg background removal), billing (Polar SDK), auth (Supabase JWT), and async job queue for sprite/asset generation. The server is the cloud-side counterpart to the desktop app — it does not manage agent sessions; those run entirely in the Electron process.

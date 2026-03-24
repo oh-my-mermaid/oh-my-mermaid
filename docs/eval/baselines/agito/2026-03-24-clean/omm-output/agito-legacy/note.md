@@ -1,0 +1,1 @@
+Version 0.4.8 per package.json. The shift from MCP-mediated sessions (legacy) to direct PTY spawning (v2) is the key architectural difference. Legacy also used Bun as runtime; v2 uses Node.js via Electron. The viewer app in legacy may be related to the mermaid diagram viewer — unclear if this functionality is planned for v2.

@@ -1,0 +1,3 @@
+- Hook pipeline has no timeout enforcement — a slow hook blocks all subsequent hooks in the chain
+- Memory store has no TTL by default; unbounded growth in long-running sessions
+- Plugin loader does not verify plugin signatures — malicious plugins can be loaded silently

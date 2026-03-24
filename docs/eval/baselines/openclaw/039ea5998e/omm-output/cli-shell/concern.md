@@ -1,0 +1,3 @@
+- Respawn loop: entry.ts re-executes the process; infinite loop risk if condition not guarded
+- TUI rendering can deadlock when stdout is piped — needs TTY detection before rendering
+- Browser-CLI manage/inspect commands open long-lived connections with no timeout by default

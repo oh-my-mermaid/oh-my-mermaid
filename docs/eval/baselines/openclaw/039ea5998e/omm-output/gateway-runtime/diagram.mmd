@@ -1,0 +1,28 @@
+graph LR
+  classDef external fill:#585b70,color:#fff
+  classDef concern fill:#f38ba8,color:#000
+  classDef entry fill:#89b4fa,color:#000
+  classDef store fill:#a6e3a1,color:#000
+
+  boot["Boot\nsrc/gateway/boot.ts"]:::entry
+  auth["Auth\nsrc/gateway/auth.ts"]
+  rate_limit["Rate Limit\nsrc/gateway/auth-rate-limit.ts"]:::concern
+  call["Call Dispatcher\nsrc/gateway/call.ts"]
+  routing["Routing\nsrc/routing/"]
+  channels["Channels\nsrc/channels/"]:::external
+  health["Channel Health Monitor\nsrc/gateway/channel-health-monitor.ts"]
+  abort["Chat Abort\nsrc/gateway/chat-abort.ts"]:::concern
+  attachments["Chat Attachments\nsrc/gateway/chat-attachments.ts"]
+  canvas["Canvas Capability\nsrc/gateway/canvas-capability.ts"]
+  identity["Assistant Identity\nsrc/gateway/assistant-identity.ts"]:::store
+
+  boot -->|"initializes"| auth
+  auth -->|"enforces"| rate_limit
+  auth -->|"passes to"| call
+  call -->|"routes via"| routing
+  routing -->|"selects"| channels
+  call -->|"attaches"| attachments
+  call -->|"checks"| abort
+  channels -->|"monitored by"| health
+  call -->|"renders"| canvas
+  boot -->|"sets"| identity
