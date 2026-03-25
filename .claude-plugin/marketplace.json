@@ -7,7 +7,7 @@
     {
       "name": "oh-my-mermaid",
       "description": "Turn complex codebases into clear, navigable architecture diagrams with Mermaid",
-      "version": "0.1.8",
+      "version": "0.2.0",
       "source": "./",
       "category": "development",
       "homepage": "https://github.com/oh-my-mermaid/oh-my-mermaid"
