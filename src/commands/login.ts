@@ -37,10 +37,10 @@ export async function commandLogin(): Promise<void> {
 
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(`
-          <html><body style="background:#1e1e2e;color:#a6e3a1;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
-            <div style="text-align:center">
-              <h2>${token ? 'Login successful!' : 'Login failed.'}</h2>
-              <p style="color:#a6adc8">${token ? 'You can close this tab and return to your terminal.' : 'No token received.'}</p>
+          <html><body style="background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:32px;max-width:360px;width:100%;text-align:center">
+              <h2 style="font-size:14px;font-weight:600;margin:0 0 8px">${token ? 'Login successful!' : 'Login failed.'}</h2>
+              <p style="font-size:12px;color:rgba(255,255,255,0.4);margin:0">${token ? 'You can close this tab and return to your terminal.' : 'No token received.'}</p>
             </div>
           </body></html>
         `);
