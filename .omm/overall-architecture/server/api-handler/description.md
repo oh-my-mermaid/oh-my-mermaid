@@ -1,0 +1,1 @@
+REST API handler serving JSON endpoints: GET /api/classes (list all), GET /api/class/:name (show one), GET /api/class/:name/diff (diagram diff), GET /api/class/:name/refs (incoming + outgoing references). All responses include CORS headers for browser access.

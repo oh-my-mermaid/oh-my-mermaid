@@ -1,0 +1,1 @@
+Individual command implementations, one file per command. Each exports an async or sync function invoked by the CLI dispatcher. Commands fall into three groups: local operations (init, list, show, delete, status, diff, refs, validate, class-field), cloud operations (login, logout, link, push, pull, share, org), and tool integration (setup, update, view).

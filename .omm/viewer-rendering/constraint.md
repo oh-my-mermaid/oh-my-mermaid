@@ -1,3 +1,0 @@
-- Mermaid is NOT rendered via the official mermaid.js library — the viewer uses a custom dagre-based layout engine for full control over node interaction and styling
-- `@class-name` nodes in diagrams must be recognized as drill-down references; do not use `@` prefix for non-class nodes
-- viewer.html is a single self-contained file (no build step for frontend); all CSS/JS is inline

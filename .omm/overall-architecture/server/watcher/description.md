@@ -1,0 +1,1 @@
+File system watcher using fs.watch() with recursive mode on the .omm/ directory. Debounces rapid changes (300ms) and broadcasts SSE events to all connected clients. Manages a set of active SSE connections with automatic cleanup on disconnect.

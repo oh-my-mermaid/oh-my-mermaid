@@ -1,0 +1,1 @@
+Local web viewer that reads data from the store via REST API endpoints. Receives live-reload events via SSE when the file watcher detects changes in .omm/. Renders diagrams using Mermaid.js in the browser.

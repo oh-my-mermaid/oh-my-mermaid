@@ -1,0 +1,1 @@
+Compares two diagram versions by parsing nodes and edges from each, then computing set differences. Consumes diagram text from the store (current + prev_diagram from meta). Output is a DiffResult with added/removed nodes and edges.

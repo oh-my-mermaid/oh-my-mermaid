@@ -1,13 +1,38 @@
 graph LR
+    cli["CLI Dispatcher\nsrc/cli.ts"]
+    commands["Commands\nsrc/commands/"]
+    store["Store\nsrc/lib/store.ts"]
+    cloud["Cloud Client\nsrc/lib/cloud.ts"]
+    diff-engine["Diff Engine\nsrc/lib/diff.ts"]
+    refs["Ref Tracker\nsrc/lib/refs.ts"]
+    validator["Validator\nsrc/lib/validate.ts"]
+    meta["Meta Tracker\nsrc/lib/meta.ts"]
+    cloud-paths["Cloud Paths\nsrc/lib/cloud-paths.ts"]
+    platforms["Platform Integrations\nsrc/lib/platforms/"]
+    server["Web Viewer\nsrc/server/"]
+    public-api["Public API\nsrc/index.ts"]
+
+    cli -->|"dispatches args to"| commands
+    commands -->|"read/write .omm/"| store
+    commands -->|"push/pull via REST"| cloud
+    commands -->|"compare diagrams"| diff-engine
+    commands -->|"cross-references"| refs
+    commands -->|"validate mermaid"| validator
+    commands -->|"register skills"| platforms
+    commands -->|"start HTTP server"| server
+    store -->|"update timestamps + git"| meta
+    cloud -->|"safe path resolution"| cloud-paths
+    server -->|"read classes"| store
+    server -->|"compare diagrams"| diff-engine
+    server -->|"resolve refs"| refs
+    public-api -->|"re-exports"| store
+    public-api -->|"re-exports"| diff-engine
+    public-api -->|"re-exports"| refs
+    public-api -->|"re-exports"| validator
+
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
     classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
     classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
-    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
 
-    cli["omm CLI\nsrc/cli.ts"]:::entry
-    cli -->|"dispatch command"| @cli-commands["CLI Commands\nsrc/commands/"]
-    @cli-commands -->|"read/write fields"| @storage-model["Storage Model\n.omm/"]
-    @cli-commands -->|"omm serve"| @serve-layer["Local Server\nsrc/server/"]
-    @serve-layer -->|"serve viewer + API"| @viewer-rendering["Browser Viewer\nsrc/server/viewer.html"]
-    @serve-layer -->|"read class data"| @storage-model
-    @cli-commands -->|"omm push/pull/login"| cloud["ohmymermaid.com\nhttps://ohmymermaid.com"]:::external
-    cloud -->|"shareable URL"| browser["Browser\n(remote viewer)"]:::external
+    class cli,public-api entry
+    class store store

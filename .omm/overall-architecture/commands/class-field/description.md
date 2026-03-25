@@ -1,0 +1,1 @@
+Default handler for the `omm <class> <field> [content]` pattern. When no global command matches, the CLI falls through to this handler. Without content, it reads the field to stdout. With content (or `-` for stdin), it writes the field. Supports all 7 field types: description, diagram, constraint, concern, context, todo, note.

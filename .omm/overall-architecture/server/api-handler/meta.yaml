@@ -1,0 +1,9 @@
+created: 2026-03-25T12:27:59.485Z
+updated: 2026-03-25T12:27:59.486Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: api-handler
+children: []
+parentPath:
+  - server

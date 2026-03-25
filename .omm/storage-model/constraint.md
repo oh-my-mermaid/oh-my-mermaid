@@ -1,3 +1,0 @@
-- `prev_diagram` in meta.yaml is automatically saved whenever the `diagram` field is overwritten — enables diff without git
-- Never write class data through the HTTP API; only `src/lib/store.ts` may write to `.omm/`
-- `config.yaml` lives directly in `.omm/` (not in a class dir); class dirs are identified by `isDirectory()` filter in `listClasses()`

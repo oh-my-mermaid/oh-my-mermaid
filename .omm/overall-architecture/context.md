@@ -1,7 +1,1 @@
-omm is a CLI tool that generates and serves architecture documentation as Mermaid diagrams. The core loop is: AI scans code → writes `.omm/` files via CLI → developer serves them locally or pushes to cloud.
-
-Key decisions:
-- Local-first: all data lives in `.omm/` plain files (markdown + mmd), no database
-- CLI as the write interface: Claude Code uses `omm <class> <field> - <<'EOF'` to write docs; the server is read-only
-- SSE for live reload: avoids WebSocket complexity while enabling instant viewer refresh as Claude writes
-- Cloud sync is optional: push/pull uploads raw `.omm/` files; cloud hosts its own renderer (separate from viewer.html)
+Built as a TypeScript ESM package with zero runtime dependencies beyond `yaml`. Uses tsup for bundling. Published to npm as `oh-my-mermaid` with both a CLI binary (`omm`) and a library API. Designed to be invoked by AI coding assistants via skills/plugins, with the `/omm-scan` skill being the primary entry point for generating architecture docs.

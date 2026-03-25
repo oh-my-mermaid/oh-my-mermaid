@@ -1,0 +1,19 @@
+graph LR
+    http-server["HTTP Server\nsrc/server/index.ts"]
+    api-handler["API Handler\nsrc/server/api.ts"]
+    watcher["File Watcher\nsrc/server/watcher.ts"]
+    viewer-html["Viewer HTML\nsrc/server/viewer.html"]
+
+    http-server -->|"routes /api/* to"| api-handler
+    http-server -->|"serves at /"| viewer-html
+    http-server -->|"routes /events to"| watcher
+    watcher -->|"watches .omm/ for changes"| sse-clients["SSE Clients"]
+    api-handler -->|"reads classes via"| store["Store"]
+    api-handler -->|"compares via"| diff["Diff Engine"]
+    api-handler -->|"resolves via"| refs["Ref Tracker"]
+
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+
+    class http-server entry
+    class store,diff,refs,sse-clients external

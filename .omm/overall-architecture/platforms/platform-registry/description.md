@@ -1,0 +1,1 @@
+Central registry that aggregates all platform implementations. Exports ALL_PLATFORMS array, getPlatformById() for targeted lookup, and getDetectedPlatforms() to filter by what's installed on the current machine.

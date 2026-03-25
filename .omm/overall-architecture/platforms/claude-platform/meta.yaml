@@ -1,0 +1,9 @@
+created: 2026-03-25T12:27:09.618Z
+updated: 2026-03-25T12:27:09.619Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: claude-platform
+children: []
+parentPath:
+  - platforms

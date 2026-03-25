@@ -1,3 +1,0 @@
-- The API is strictly read-only: no POST/PUT/DELETE routes — all writes go through the CLI
-- `viewer.html` is served from `dist/` in production (bundled by tsup), with fallback to `src/server/viewer.html` for dev
-- Project name is injected server-side via `window.__projectName` script tag before `</head>` — not passed via API

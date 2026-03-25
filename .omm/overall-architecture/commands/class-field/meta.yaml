@@ -1,0 +1,9 @@
+created: 2026-03-25T12:25:49.707Z
+updated: 2026-03-25T12:25:49.708Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: class-field
+children: []
+parentPath:
+  - commands

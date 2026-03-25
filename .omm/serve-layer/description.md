@@ -1,1 +1,0 @@
-The local HTTP server started by `omm serve`. Serves the viewer HTML, a read-only JSON API, and a Server-Sent Events stream for live reload. Read this if you're modifying the server or adding API endpoints.

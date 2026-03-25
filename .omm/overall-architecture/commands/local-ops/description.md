@@ -1,0 +1,1 @@
+Core CRUD operations on .omm/ classes. `init` creates the .omm/ directory and config.yaml. `list` enumerates all class directories. `show` reads all fields for a class. `delete` removes a class directory. `status` prints an overview of all classes with their field counts and last-updated timestamps.

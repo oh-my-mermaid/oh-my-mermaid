@@ -1,0 +1,36 @@
+graph LR
+    ai-assistant["AI Assistant\nClaude Code / Codex / Cursor"]
+    cli-input["CLI Input\nomm <class> <field> [content]"]
+    store["Store Engine\nsrc/lib/store.ts"]
+    omm-dir[".omm/ Directory\nFilesystem"]
+    meta-tracker["Meta Tracker\nsrc/lib/meta.ts"]
+    validator["Validator\nsrc/lib/validate.ts"]
+    diff-engine["Diff Engine\nsrc/lib/diff.ts"]
+    ref-tracker["Ref Tracker\nsrc/lib/refs.ts"]
+    cloud-api["Cloud API\nohmymermaid.com"]
+    web-viewer["Web Viewer\nlocalhost:3000"]
+    credentials["Credentials\n~/.omm/credentials.json"]
+
+    ai-assistant -->|"invokes omm write"| cli-input
+    cli-input -->|"writeField(class, field, content)"| store
+    store -->|"write field files"| omm-dir
+    store -->|"save prev_diagram on overwrite"| omm-dir
+    store -->|"updateMeta()"| meta-tracker
+    meta-tracker -->|"write meta.yaml + git info"| omm-dir
+    omm-dir -->|"readField()"| store
+    store -->|"diagram text"| validator
+    store -->|"diagram text"| diff-engine
+    store -->|"diagram text"| ref-tracker
+    omm-dir -->|"push all files"| cloud-api
+    cloud-api -->|"pull files"| omm-dir
+    credentials -->|"Bearer token"| cloud-api
+    omm-dir -->|"fs.watch + SSE"| web-viewer
+    web-viewer -->|"REST API reads"| store
+
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+
+    class ai-assistant,cloud-api external
+    class cli-input entry
+    class omm-dir,credentials store

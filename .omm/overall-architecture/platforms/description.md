@@ -1,0 +1,1 @@
+Platform integration layer for AI coding tools. Each platform implements a common interface (detect, isSetup, setup, teardown) to register omm skills/plugins. The setup command auto-detects installed tools and configures them. Supports 5 platforms: Claude Code, Codex, Cursor, OpenClaw, and Antigravity.

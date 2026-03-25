@@ -1,0 +1,1 @@
+Single-file HTML/CSS/JS viewer application. Renders Mermaid diagrams in the browser using the Mermaid.js library. Provides navigation between classes, field viewing, diff visualization, and reference graph display. Receives live-reload events via SSE to auto-refresh when .omm/ files change.

@@ -1,0 +1,1 @@
+Cloud authentication and API client for ohmymermaid.com. Manages credentials (token, handle, default_org) in ~/.omm/credentials.json with 0o600 permissions. Provides apiRequest() for authenticated REST calls with Bearer token. API URL defaults to https://ohmymermaid.com, overridable via OMM_API_URL env var.

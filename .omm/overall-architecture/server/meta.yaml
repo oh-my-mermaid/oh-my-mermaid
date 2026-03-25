@@ -1,0 +1,12 @@
+created: 2026-03-25T12:27:38.477Z
+updated: 2026-03-25T12:27:47.021Z
+update_count: 2
+last_field: diagram
+kind: nested-class
+title: server
+children:
+  - api-handler
+  - http-server
+  - viewer-html
+  - watcher
+parentPath: []

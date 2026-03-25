@@ -1,0 +1,16 @@
+graph LR
+    local-ops["Local Operations\ninit, list, show, delete, status"]
+    query-ops["Query Operations\ndiff, refs, validate"]
+    cloud-ops["Cloud Operations\nlogin, logout, link, push, pull, share, org"]
+    tool-ops["Tool Operations\nsetup, update, view"]
+    class-field["Class-Field Handler\nsrc/commands/class-field.ts"]
+
+    local-ops -->|"read/write .omm/"| store["Store"]
+    query-ops -->|"analyze diagrams"| libs["Diff / Refs / Validate"]
+    cloud-ops -->|"REST API calls"| cloud["Cloud Client"]
+    tool-ops -->|"platform detect + register"| platforms["Platforms"]
+    tool-ops -->|"start server"| server["Web Viewer"]
+    class-field -->|"read or write field"| store
+
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    class store,libs,cloud,platforms,server external

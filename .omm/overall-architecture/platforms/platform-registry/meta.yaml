@@ -1,0 +1,9 @@
+created: 2026-03-25T12:26:54.101Z
+updated: 2026-03-25T12:26:54.102Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: platform-registry
+children: []
+parentPath:
+  - platforms

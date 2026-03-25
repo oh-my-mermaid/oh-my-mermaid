@@ -1,0 +1,13 @@
+created: 2026-03-25T12:25:06.735Z
+updated: 2026-03-25T12:25:14.479Z
+update_count: 2
+last_field: diagram
+kind: nested-class
+title: commands
+children:
+  - class-field
+  - cloud-ops
+  - local-ops
+  - query-ops
+  - tool-ops
+parentPath: []

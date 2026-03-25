@@ -1,0 +1,1 @@
+Entry point for the `omm` CLI binary. Parses `process.argv`, dispatches to named command handlers (init, setup, list, show, delete, status, diff, refs, validate, view, login, logout, push, pull, link, share, org, update), and falls back to the class-field pattern (`omm <class> <field> [content]`) for direct read/write operations. Prints help on no args or `--help`.

@@ -1,0 +1,25 @@
+graph TD
+    omm["omm\nCLI entry"]
+
+    omm -->|"local"| init["init\nomm init"]
+    omm -->|"local"| list["list\nomm list"]
+    omm -->|"local"| show["show\nomm show <class>"]
+    omm -->|"local"| delete["delete\nomm delete <class>"]
+    omm -->|"local"| status["status\nomm status"]
+    omm -->|"query"| diff["diff\nomm diff <class>"]
+    omm -->|"query"| refs["refs\nomm refs [--reverse] <class>"]
+    omm -->|"query"| validate["validate\nomm validate [class]"]
+    omm -->|"viewer"| view["view\nomm view [--port N]"]
+    omm -->|"cloud"| login["login\nomm login"]
+    omm -->|"cloud"| logout["logout\nomm logout"]
+    omm -->|"cloud"| link["link\nomm link [org/slug]"]
+    omm -->|"cloud"| push["push\nomm push"]
+    omm -->|"cloud"| pull["pull\nomm pull"]
+    omm -->|"cloud"| share["share\nomm share"]
+    omm -->|"cloud"| org["org\nomm org <sub>"]
+    omm -->|"integration"| setup["setup\nomm setup [platform]"]
+    omm -->|"integration"| update["update\nomm update"]
+    omm -->|"fallback"| class-field["class-field\nomm <class> <field> [content]"]
+
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    class omm entry
