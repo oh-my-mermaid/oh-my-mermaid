@@ -5,7 +5,7 @@ export function commandRefs(className: string, reverse: boolean): void {
   if (!ensureOmmForRead()) return;
 
   if (!classExists(className)) {
-    process.stderr.write(`error: class '${className}' not found\n`);
+    process.stderr.write(`error: element '${className}' not found\n`);
     process.exit(1);
   }
 
@@ -13,7 +13,7 @@ export function commandRefs(className: string, reverse: boolean): void {
     // Show what this class references (outgoing)
     const refs = getOutgoingRefs(className);
     if (refs.length === 0) {
-      process.stdout.write(`${className} does not reference any other class.\n`);
+      process.stdout.write(`${className} does not reference any other element.\n`);
       return;
     }
     process.stdout.write(`${className} references:\n`);
@@ -24,7 +24,7 @@ export function commandRefs(className: string, reverse: boolean): void {
     // Show what references this class (incoming)
     const refs = getIncomingRefs(className);
     if (refs.length === 0) {
-      process.stdout.write(`No class references ${className}.\n`);
+      process.stdout.write(`No element references ${className}.\n`);
       return;
     }
     process.stdout.write(`Referenced by:\n`);

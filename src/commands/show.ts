@@ -5,7 +5,7 @@ export function commandShow(className: string): void {
   if (!ensureOmmForRead()) return;
   const data = showClass(className);
   if (!data) {
-    process.stderr.write(`error: class '${className}' not found\n`);
+    process.stderr.write(`error: element '${className}' not found\n`);
     process.exit(1);
   }
 

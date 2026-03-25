@@ -5,11 +5,11 @@ export function commandStatus(): void {
   const classes = listClasses();
 
   if (classes.length === 0) {
-    process.stdout.write('No classes found. Run /omm-init to scan your codebase.\n');
+    process.stdout.write('No perspectives found. Run /omm-scan to generate.\n');
     return;
   }
 
-  process.stdout.write(`Classes: ${classes.length}\n\n`);
+  process.stdout.write(`Perspectives: ${classes.length}\n\n`);
 
   for (const cls of classes) {
     const meta = readMeta(cls);

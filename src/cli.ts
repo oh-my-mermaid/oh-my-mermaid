@@ -19,8 +19,11 @@ import { commandSetup } from './commands/setup.js';
 import { commandUpdate } from './commands/update.js';
 import { commandOrg } from './commands/org.js';
 import { commandValidate } from './commands/validate.js';
+import { commandTree } from './commands/tree.js';
+import { commandRead, commandWrite } from './commands/read-write.js';
+import { commandConfig } from './commands/config.js';
 
-const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'validate', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'help'];
+const GLOBAL_COMMANDS = ['init', 'setup', 'update', 'list', 'show', 'delete', 'status', 'diff', 'refs', 'validate', 'view', 'login', 'logout', 'push', 'pull', 'link', 'share', 'org', 'read', 'write', 'tree', 'config', 'help'];
 
 function printHelp(): void {
   const help = `
@@ -32,19 +35,17 @@ Usage:
   omm setup --list                  Show detected platforms
   omm setup --teardown              Unregister from all platforms
   omm update                        Update CLI + plugins to latest version
-  omm list                          List all classes
-  omm show <class>                  Show all fields for a class
-  omm delete <class>                Delete a class
-  omm status                        Show overview of all classes
-  omm diff <class>                  Compare current vs previous diagram
-  omm refs <class>                  Show classes that reference this class
-  omm refs --reverse <class>        Show classes this class references
-  omm validate [class]              Validate diagram(s) for syntax and conventions
+  omm list                          List perspectives
+  omm tree <path>                   Show element tree
+  omm read <path> <field>           Read a field (stdout)
+  omm write <path> <field> <text|-> Write a field
+  omm show <path>                   Show all fields for an element
+  omm delete <path>                 Delete an element
+  omm status                        Show overview of all elements
+  omm diff <path>                   Compare current vs previous diagram
+  omm refs <path>                   Show elements that reference this element
+  omm validate [path]               Validate diagram(s) for syntax and conventions
   omm view [--port <port>]         Start web viewer (default: 3000)
-
-  omm <class> <field>               Read a field (stdout)
-  omm <class> <field> <content>     Write a field
-  omm <class> <field> -             Write a field from stdin
 
 Cloud:
   omm login                         Log in to omm.dev
@@ -57,6 +58,7 @@ Cloud:
   omm org switch <slug>             Set default organization
   omm org members [slug]            View members (opens web)
 
+Paths: use / for nested elements (e.g. overall-architecture/main-process)
 Fields: description, diagram, constraint, concern, context, todo, note
 `;
   process.stdout.write(help.trim() + '\n');
@@ -67,6 +69,14 @@ async function main(): Promise<void> {
 
   if (args.length === 0 || args[0] === 'help' || args[0] === '--help' || args[0] === '-h') {
     printHelp();
+    return;
+  }
+
+  if (args[0] === '--version' || args[0] === '-v' || args[0] === 'version') {
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    const pkg = require('../package.json');
+    process.stdout.write(`omm ${pkg.version}\n`);
     return;
   }
 
@@ -89,9 +99,25 @@ async function main(): Promise<void> {
       commandList();
       return;
 
+    case 'tree':
+      commandTree(args[1]);
+      return;
+
+    case 'config':
+      commandConfig(args.slice(1));
+      return;
+
+    case 'read':
+      commandRead(args[1], args[2]);
+      return;
+
+    case 'write':
+      await commandWrite(args[1], args[2], args.slice(3));
+      return;
+
     case 'show':
       if (!args[1]) {
-        process.stderr.write('error: omm show <class>\n');
+        process.stderr.write('error: omm show <path>\n');
         process.exit(1);
       }
       commandShow(args[1]);
@@ -99,7 +125,7 @@ async function main(): Promise<void> {
 
     case 'delete':
       if (!args[1]) {
-        process.stderr.write('error: omm delete <class>\n');
+        process.stderr.write('error: omm delete <path>\n');
         process.exit(1);
       }
       commandDelete(args[1]);
@@ -178,12 +204,15 @@ async function main(): Promise<void> {
       return;
 
     default:
-      // Class-field pattern: omm <class> <field> [content]
+      // Legacy alias: omm <path> <field> [content] → read/write
       if (args.length >= 2 && !GLOBAL_COMMANDS.includes(cmd)) {
-        const className = cmd;
+        const targetPath = cmd;
         const field = args[1];
-        const content = args.length >= 3 ? args.slice(2).join(' ') : undefined;
-        await commandClassField(className, field, content);
+        if (args.length >= 3) {
+          await commandWrite(targetPath, field, args.slice(2));
+        } else {
+          commandRead(targetPath, field);
+        }
         return;
       }
 

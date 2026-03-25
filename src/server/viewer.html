@@ -230,6 +230,57 @@ body.light .grp-node.selected > .grp-border { stroke: #4f46e5 !important; filter
 body.light .reg-node:hover .nshape { stroke: #000 !important; filter: drop-shadow(0 0 6px rgba(0,0,0,0.3)); }
 body.light .reg-node.selected .nshape { stroke: #4f46e5 !important; filter: drop-shadow(0 0 8px rgba(79,70,229,0.4)); }
 body.light .reg-node:hover .nshape { stroke: #000 !important; }
+
+#mobile-nav-btn { display: none; }
+#mobile-overlay { display: none; }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  #nav-sidebar {
+    transform: translateX(-100%);
+    transition: transform .22s cubic-bezier(.4,0,.2,1);
+    z-index: 500;
+  }
+  #nav-sidebar.mobile-open { transform: translateX(0); }
+  #canvas-wrap { left: 0 !important; margin-left: 0 !important; }
+  #mobile-nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    position: fixed; top: 10px; left: 10px; z-index: 400;
+    background: rgba(0,0,0,0.75); border: 1px solid #333;
+    border-radius: 6px; padding: 6px 12px;
+    color: #fff; font-size: 13px; font-family: var(--mono);
+    cursor: pointer; backdrop-filter: blur(8px);
+  }
+  #mobile-nav-btn span { font-size: 16px; }
+  #mobile-overlay {
+    display: none; position: fixed; inset: 0; z-index: 450;
+    background: rgba(0,0,0,0.5);
+  }
+  #mobile-overlay.show { display: block; }
+  #sidebar {
+    top: auto; right: 0; bottom: 0; left: 0;
+    width: 100%; height: 50vh;
+    max-height: 70vh;
+    border-left: none; border-top: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    transform: translateY(100%);
+  }
+  #sidebar.open { transform: translateY(0); }
+  #sb-head {
+    position: relative;
+    padding: 12px 20px 10px;
+  }
+  #sb-head::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 36px; height: 4px;
+    background: #444; border-radius: 2px;
+  }
+  .hud { right: 8px; top: 8px; }
+  .hud .hbtn { width: 28px; height: 28px; font-size: 12px; }
+}
 </style>
 </head>
 <body>
@@ -238,6 +289,8 @@ body.light .reg-node:hover .nshape { stroke: #000 !important; }
   <div id="nav-list"></div>
 </div>
 
+<div id="mobile-nav-btn" onclick="toggleMobileNav()"><span>☰</span><span id="mobile-title">omm</span></div>
+<div id="mobile-overlay" onclick="toggleMobileNav()"></div>
 <div id="canvas-wrap">
   <div class="float-controls">
     <button class="hbtn" onclick="zoomOut()">−</button>
@@ -406,9 +459,10 @@ function smoothPath(pts) {
 // _expandedGlobal prevents same class from expanding in multiple branches
 let _expandedGlobal = new Set();
 
-function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
+function renderGroup(cls, classesData, allClasses, level, seen = new Set(), scopedPath) {
   if (seen.has(cls)) return null;
   seen = new Set(seen); seen.add(cls);
+  if (!scopedPath) scopedPath = cls; // level 0: scopedPath = perspective name
   let labelOverlay = ''; // centered labels for sub-groups, rendered outside grp-inner
 
   const data = classesData[cls];
@@ -419,22 +473,27 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
   if (!nodes.length) return null;
 
   // padding around the group content
-  const PAD_L = 16, PAD_R = 20, PAD_T = level===0 ? 20 : 22, PAD_B = 16;
+  const PAD_L = 16, PAD_R = 20, PAD_T = 20, PAD_B = 16;
 
   // For level 0: expand @ref nodes as sub-groups
   const subGroups = {}; // nodeId -> { cls, W, H, svgContent }
   const nodeDims  = {}; // nodeId -> { width, height }
 
+  // Determine children of current element for subgroup resolution
+  const currentChildren = (level === 0 ? (childrenByPerspective[cls] || []) : (classesData[cls]?.children || []));
+
   for (const n of nodes) {
-    const refCls = n.isRef ? (n.refTarget || n.id) : null;
-    if (level < maxDepth && refCls && allClasses.includes(refCls) && !seen.has(refCls) && !_expandedGlobal.has(refCls)) {
+    // Resolve subgroup: @ref (legacy) OR node ID is a child of current element with its own diagram
+    const refCls = n.isRef ? (n.refTarget || n.id) : (currentChildren.includes(n.id) && classesData[n.id]?.diagram ? n.id : null);
+    if (level < maxDepth && refCls && classesData[refCls]?.diagram && !seen.has(refCls) && !_expandedGlobal.has(refCls)) {
       _expandedGlobal.add(refCls);
-      const sub = renderGroup(refCls, classesData, allClasses, level+1, seen);
+      const childScopedPath = scopedPath + '/' + refCls;
+      const sub = renderGroup(refCls, classesData, allClasses, level+1, seen, childScopedPath);
       if (sub) {
         // Scale down to fit max box. At small scales, edge overflow becomes negligible.
         const MAX_W = 320, MAX_H = 220, PAD = 12;
         const fs = Math.min((MAX_W - PAD*2) / sub.W, (MAX_H - PAD*2) / sub.H, 1);
-        subGroups[n.id] = { cls: refCls, ...sub, fitScale: fs };
+        subGroups[n.id] = { cls: refCls, scopedPath: childScopedPath, ...sub, fitScale: fs };
         nodeDims[n.id] = { width: sub.W * fs + PAD * 2, height: sub.H * fs + PAD * 2 };
       }
     }
@@ -443,8 +502,8 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
       const [mainLbl] = lbl.split('\n');
       const hasPath = lbl.includes('\n');
       const maxW = nodes.length > 10 ? 160 : 220;
-      const w = Math.min(maxW, Math.max(80, tw(mainLbl, level===0?'12px Inter,system-ui':'11px Inter,system-ui') + 44));
-      const baseH = n.shape==='diamond' ? 42 : (level===0 ? 38 : 34);
+      const w = Math.min(maxW, Math.max(80, tw(mainLbl, '12px Inter,system-ui') + 44));
+      const baseH = n.shape==='diamond' ? 42 : 38;
       nodeDims[n.id] = {width: w, height: hasPath ? baseH + 14 : baseH};
     }
   }
@@ -478,8 +537,8 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
   const dense = nodes.length > 10;
   function buildGraph(rd) {
     const g = new dagre.graphlib.Graph();
-    const nsep = level===0 ? (dense ? 20 : 32) : (dense ? 16 : 24);
-    const rsep = level===0 ? (dense ? 28 : 44) : (dense ? 22 : 32);
+    const nsep = dense ? 20 : 32;
+    const rsep = dense ? 28 : 44;
     g.setGraph({rankdir: rd, nodesep:nsep, ranksep:rsep, marginx:PAD_L, marginy:PAD_T});
     g.setDefaultEdgeLabel(() => ({}));
     for (const n of nodes) {
@@ -555,7 +614,7 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
       d = smoothPath(pts);
       mid = pts[Math.floor(pts.length/2)];
     }
-    const ec = level===0 ? th.edgeColor0 : th.edgeColor1;
+    const ec = th.edgeColor0;
     const mk = `${uid}m${i}`;
     svg += `<defs><marker id="${mk}" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto" markerUnits="userSpaceOnUse">
       <path d="M0,0.5 L0,4.5 L6,2.5 z" fill="${ec}"/></marker></defs>
@@ -578,16 +637,15 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
 
     if (sg) {
       // ── sub-group: dashed boundary + nested content ──
-      const safeId = esc(sg.cls);
-      const isRef = n.label.startsWith('@');
+      const safeId = esc(sg.cls); // short name for display
+      const scopedId = esc(sg.scopedPath || sg.cls); // full path for selection
       const refSubStroke = th.subStroke;
-      const refDash = '';
       const fs = sg.fitScale;
       const PAD = 12;
       const boxW = sg.W * fs + PAD * 2, boxH = sg.H * fs + PAD * 2;
       const clipId = `${uid}clip_${n.id}`;
       svg += `<defs><clipPath id="${clipId}"><rect x="-2" y="-16" width="${r1(boxW+4)}" height="${r1(boxH+18)}" rx="6"/></clipPath></defs>`;
-      svg += `<g class="grp-node" clip-path="url(#${clipId})" onclick="event.stopPropagation();window.__openSb('${safeId}')" data-cls="${safeId}" data-depth="${level+1}" transform="translate(${nx},${ny})">`;
+      svg += `<g class="grp-node" clip-path="url(#${clipId})" onclick="event.stopPropagation();window.__openSb('${scopedId}')" data-cls="${scopedId}" data-depth="${level+1}" transform="translate(${nx},${ny})">`;
       svg += `<rect class="grp-border" width="${r1(boxW)}" height="${r1(boxH)}" rx="5"
         fill="${th.subFill}" stroke="${refSubStroke}" stroke-width="2"/>`;
       const _slW = tw(fmtLabel(sg.cls), '600 9px "Plus Jakarta Sans",Inter,system-ui') + 12;
@@ -611,8 +669,8 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
       const rawLbl = n.label.replace(/^@/,'');
       const [mainLbl, pathLbl] = rawLbl.split('\n');
       const cx = r1(pos.x), cy = r1(pos.y);
-      const fs = level===0 ? 12 : 11;
-      const safeId = esc(n.id);
+      const fs = 12;
+      const nodeScopedId = esc(scopedPath + '/' + n.id);
       let shape = '';
       if (n.shape==='diamond') {
         shape = `<polygon class="nshape" points="${cx},${ny} ${nx+dim.width},${cy} ${cx},${ny+dim.height} ${nx},${cy}"
@@ -625,14 +683,14 @@ function renderGroup(cls, classesData, allClasses, level, seen = new Set()) {
           rx="4" fill="${st.bg}" stroke="${st.border}" stroke-width="2" ${da}/>`;
       }
       if (pathLbl) {
-        svg += `<g class="reg-node" data-cls="${safeId}" onclick="event.stopPropagation();window.__openSb('${safeId}')">${shape}
+        svg += `<g class="reg-node" data-cls="${nodeScopedId}" onclick="event.stopPropagation();window.__openSb('${nodeScopedId}')">${shape}
           <text class="node-lbl" x="${cx}" y="${r1(cy - 7)}" text-anchor="middle" dominant-baseline="central"
             font-family="Inter,system-ui,sans-serif" font-size="${fs}" fill="${st.text}">${esc(mainLbl)}</text>
           <text class="node-path" x="${cx}" y="${r1(cy + 7)}" text-anchor="middle" dominant-baseline="central"
             font-family="'SF Mono','Fira Code',monospace" font-size="9" fill="${st.text}" opacity="0.45">${esc(pathLbl)}</text>
         </g>`;
       } else {
-        svg += `<g class="reg-node" data-cls="${safeId}" onclick="event.stopPropagation();window.__openSb('${safeId}')">${shape}
+        svg += `<g class="reg-node" data-cls="${nodeScopedId}" onclick="event.stopPropagation();window.__openSb('${nodeScopedId}')">${shape}
           <text class="node-lbl" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
             font-family="Inter,system-ui,sans-serif" font-size="${fs}" fill="${st.text}">${esc(mainLbl)}</text>
         </g>`;
@@ -852,17 +910,19 @@ function focusGroup(cls) {
   const svgW = rect.width / vpScale;
   const svgH = rect.height / vpScale;
 
-  // Available viewport (account for right sidebar overlay)
-  const sbW = sidebar.classList.contains('open') ? 400 : 0;
+  // Available viewport (account for sidebar: right panel on desktop, bottom drawer on mobile)
+  const isMobile = window.innerWidth <= 768;
+  const sbW = (!isMobile && sidebar.classList.contains('open')) ? 400 : 0;
+  const sbH = (isMobile && sidebar.classList.contains('open')) ? window.innerHeight * 0.5 : 0;
   const availW = canvasWrap.clientWidth - sbW - 60;
-  const availH = canvasWrap.clientHeight - 60;
+  const availH = canvasWrap.clientHeight - sbH - 60;
 
   // Target scale to fit element with padding
   const targetScale = Math.min(MAX_SCALE, Math.max(0.15, Math.min(availW / svgW, availH / svgH) * 0.85));
 
-  // Center in available viewport
+  // Center in available viewport (account for sidebar/drawer)
   const centerX = (canvasWrap.clientWidth - sbW) / 2;
-  const centerY = canvasWrap.clientHeight / 2;
+  const centerY = (canvasWrap.clientHeight - sbH) / 2;
   const toX = centerX - svgCenterX * targetScale;
   const toY = centerY - svgCenterY * targetScale;
 
@@ -958,17 +1018,28 @@ canvasWrap.addEventListener('click', e => {
 
 // ── sidebar ───────────────────────────────────────────────
 window.__openSb = function(cls) {
-  if (!classes.includes(cls)) return;
-  // highlight
+  // Resolve: try full scoped path, then short name, then fallback to parent perspective
+  var shortName = cls.includes('/') ? cls.split('/').pop() : cls;
+  var dataKey = classesData[cls] ? cls : (classesData[shortName] ? shortName : null);
+  if (!dataKey && cls.includes('/')) {
+    // Fallback: show parent perspective for nodes without their own element data
+    dataKey = cls.split('/')[0];
+  }
+  if (!dataKey || !classesData[dataKey]) return;
+  // highlight using scoped cls for DOM, dataKey for data
   document.querySelectorAll('.grp-node,.reg-node').forEach(el=>el.classList.remove('selected'));
   document.querySelectorAll(`[data-cls="${CSS.escape(cls)}"]`).forEach(el=>el.classList.add('selected'));
   selectedCls=cls;
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.getAttribute('data-nav') === cls);
   });
-  openSidebar(cls);
-  // Wait for sidebar transition to complete (250ms) before focusing
-  setTimeout(() => focusGroup(cls), 260);
+  var sidebarAlreadyOpen = sidebar.classList.contains('open');
+  openSidebar(dataKey);
+  if (sidebarAlreadyOpen) {
+    focusGroup(cls);
+  } else {
+    setTimeout(() => focusGroup(cls), 260);
+  }
   // Cloud mode: notify parent frame of selection
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'class-selected', className: cls }, '*');
@@ -978,7 +1049,7 @@ window.__openSb = function(cls) {
 function openSidebar(cls) {
   const data=classesData[cls]||{}, refs=refsData[cls]||{};
   sbTitle.textContent=fmtLabel(cls);
-  sbDiagram.innerHTML = data.diagram ? (renderFlatSVG(data.diagram)||'') : '';
+  sbDiagram.innerHTML = '';
   const md=t=>t?marked.parse(t):'';
   const sec=(title,body,ex='')=>body?`<div class="sb-sec ${ex}"><div class="sb-sec-title">${title}</div><div class="sb-sec-body">${body}</div></div>`:'';
   let html='';
@@ -1011,6 +1082,38 @@ function closeSidebar() {
   selectedCls=null;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 }
+
+// Mobile: swipe down to close drawer
+(function() {
+  var startY = 0, currentY = 0, dragging = false;
+  sidebar.addEventListener('touchstart', function(e) {
+    if (!sidebar.classList.contains('open')) return;
+    var t = e.touches[0];
+    startY = t.clientY;
+    currentY = startY;
+    dragging = true;
+    sidebar.style.transition = 'none';
+  }, { passive: true });
+  sidebar.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    currentY = e.touches[0].clientY;
+    var dy = currentY - startY;
+    if (dy > 0) {
+      sidebar.style.transform = 'translateY(' + dy + 'px)';
+    }
+  }, { passive: true });
+  sidebar.addEventListener('touchend', function() {
+    if (!dragging) return;
+    dragging = false;
+    sidebar.style.transition = '';
+    var dy = currentY - startY;
+    if (dy > 80) {
+      closeSidebar();
+    } else {
+      sidebar.style.transform = '';
+    }
+  });
+})();
 function clearFocusExempt() {
   document.querySelectorAll('#canvas [data-cls].focus-exempt').forEach(el => el.classList.remove('focus-exempt'));
 }
@@ -1172,6 +1275,72 @@ function buildNavTree() {
     targets.forEach(r => { navInCount[r]++; });
   }
 
+  // v2: if any perspective has children, use perspective nav with nested items
+  const hasNested = Object.values(childrenByPerspective).some(c => c && c.length > 0);
+  if (hasNested) {
+    function addNavChildren(parentScopedPath, children, basePrefix) {
+      children.forEach(function(child, j) {
+        var isLast = j === children.length - 1;
+        var childScoped = parentScopedPath + '/' + child;
+        addNavItem(childScoped, basePrefix, isLast, child);
+        // Recurse: check if this child has sub-children in classesData
+        var childData = classesData[child];
+        if (childData && childData.children && childData.children.length > 0) {
+          var subPrefix = basePrefix + (isLast ? '   ' : '│  ');
+          addNavChildren(childScoped, childData.children, subPrefix);
+        }
+      });
+    }
+    originalPerspectives.forEach((persp, i) => {
+      const isLastPersp = i === originalPerspectives.length - 1;
+      const children = childrenByPerspective[persp] || [];
+      const hasChildren = children.length > 0;
+
+      // Create perspective row with expand/fold toggle
+      const btn = document.createElement('button');
+      btn.setAttribute('data-nav', persp);
+      btn.className = 'nav-item nav-root';
+      btn.onclick = () => { window.__openSb(persp); if(window.innerWidth<=768){var n=document.getElementById('nav-sidebar'),o=document.getElementById('mobile-overlay');if(n)n.classList.remove('mobile-open');if(o)o.classList.remove('show');} };
+
+      if (hasChildren) {
+        const toggle = document.createElement('span');
+        toggle.className = 'nav-toggle';
+        toggle.textContent = '▾';
+        toggle.style.cssText = 'cursor:pointer;margin-right:6px;font-size:13px;color:inherit;user-select:none';
+        toggle.onclick = function(e) {
+          e.stopPropagation();
+          const container = btn.nextElementSibling;
+          if (!container) return;
+          const collapsed = container.style.display === 'none';
+          container.style.display = collapsed ? '' : 'none';
+          toggle.textContent = collapsed ? '▾' : '▸';
+        };
+        btn.appendChild(toggle);
+      }
+
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = persp;
+      btn.appendChild(labelSpan);
+      navList.appendChild(btn);
+
+      if (hasChildren) {
+        const container = document.createElement('div');
+        container.className = 'nav-persp-children';
+        var childPrefix = isLastPersp ? '   ' : '│  ';
+        // Collect children into container by temporarily redirecting addNavItem
+        const origAppend = navList.appendChild.bind(navList);
+        const tempItems = [];
+        addNavChildren(persp, children, childPrefix);
+        // Move the just-appended children from navList into container
+        while (navList.lastChild && navList.lastChild !== btn) {
+          container.insertBefore(navList.lastChild, container.firstChild);
+        }
+        navList.appendChild(container);
+      }
+    });
+    return;
+  }
+
   let roots = classes.filter(c => navInCount[c] === 0);
   if (roots.length === 0) {
     // Circular refs — pick class with most outgoing refs as root
@@ -1198,14 +1367,14 @@ function buildNavTree() {
   roots.forEach((r, i) => renderNode(r, '', i === roots.length - 1));
 }
 
-function addNavItem(name, prefix, isLast) {
+function addNavItem(name, prefix, isLast, displayLabel) {
   const btn = document.createElement('button');
   btn.setAttribute('data-nav', name);
-  btn.onclick = () => window.__openSb(name);
+  btn.onclick = () => { window.__openSb(name); if(window.innerWidth<=768){var n=document.getElementById('nav-sidebar'),o=document.getElementById('mobile-overlay');if(n)n.classList.remove('mobile-open');if(o)o.classList.remove('show');} };
 
   if (prefix === '') {
     btn.className = 'nav-item nav-root';
-    btn.textContent = name;
+    btn.textContent = displayLabel || name;
   } else {
     btn.className = 'nav-item';
     const pre = document.createElement('span');
@@ -1222,11 +1391,53 @@ function addNavItem(name, prefix, isLast) {
     btn.appendChild(pre);
     const label = document.createElement('span');
     label.className = 'nav-label';
-    label.textContent = name;
+    label.textContent = displayLabel || name;
     btn.appendChild(label);
   }
 
   navList.appendChild(btn);
+}
+
+// ── nested element support ────────────────────────────────
+var childrenByPerspective = {};
+var originalPerspectives = []; // top-level only, before short names pollute classes
+
+async function loadNodeData(perspective, childName) {
+  var key = perspective + '/' + childName;
+  if (classesData[key]) return classesData[key];
+  var data = await api('/api/class/' + perspective + '/node/' + childName);
+  if (data && !data.error) {
+    classesData[key] = data;
+    // Short name in classesData ONLY for renderGroup ref lookup
+    // Do NOT add to classes array — only perspectives belong there
+    classesData[childName] = data;
+    // Also load this element's children (depth 2+)
+    if (data.children && data.children.length > 0) {
+      var subLoads = [];
+      for (var sub of data.children) {
+        subLoads.push(loadSubNodeData(perspective, childName + '/' + sub, sub));
+      }
+      await Promise.all(subLoads);
+    }
+  }
+  return data;
+}
+
+async function loadSubNodeData(perspective, subPath, shortName) {
+  if (classesData[perspective + '/' + subPath]) return;
+  var data = await api('/api/class/' + perspective + '/node/' + subPath);
+  if (data && !data.error) {
+    classesData[perspective + '/' + subPath] = data;
+    classesData[shortName] = data;
+    // Recurse for deeper children
+    if (data.children && data.children.length > 0) {
+      var deepLoads = [];
+      for (var sub of data.children) {
+        deepLoads.push(loadSubNodeData(perspective, subPath + '/' + sub, sub));
+      }
+      await Promise.all(deepLoads);
+    }
+  }
 }
 
 // ── init ──────────────────────────────────────────────────
@@ -1234,20 +1445,38 @@ async function init() {
   applyTheme();
   classes = await api('/api/classes');
   if (!classes.length) {
-    canvasEl.innerHTML=`<div class="empty-state" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)"><p>No classes found.<br>Run <code>/omm-scan</code> in Claude Code.</p></div>`;
+    canvasEl.innerHTML=`<div class="empty-state" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)"><p>No perspectives found.<br>Run <code>/omm-scan</code> in Claude Code.</p></div>`;
     return;
   }
-  const [da,ra] = await Promise.all([
+  const [da,ra,na] = await Promise.all([
     Promise.all(classes.map(c=>api(`/api/class/${c}`))),
     Promise.all(classes.map(c=>api(`/api/class/${c}/refs`))),
+    Promise.all(classes.map(c=>api(`/api/class/${c}/nodes`))),
   ]);
-  classes.forEach((c,i)=>{classesData[c]=da[i];refsData[c]=ra[i];});
+  originalPerspectives = [...classes];
+  classes.forEach((c,i)=>{
+    classesData[c]=da[i];
+    refsData[c]=ra[i];
+    childrenByPerspective[c]=(na[i]&&na[i].children)||[];
+  });
+
+  // Pre-load nested element data for all children
+  var nodeLoads = [];
+  for (var persp of Object.keys(childrenByPerspective)) {
+    for (var child of childrenByPerspective[persp]) {
+      nodeLoads.push(loadNodeData(persp, child));
+    }
+  }
+  await Promise.all(nodeLoads);
 
   // Set project name and build nav tree
-  navTitle.textContent = window.__projectName || 'omm';
+  var projName = window.__projectName || 'omm';
+  navTitle.textContent = projName;
+  var mobileTitle = document.getElementById('mobile-title');
+  if (mobileTitle) mobileTitle.textContent = projName;
   buildNavTree();
 
-  const result = buildCanvas(classes, classesData, refsData);
+  const result = buildCanvas(originalPerspectives, classesData, refsData);
   if (result) {
     canvasEl.innerHTML = result.html;
     svgW = result.W; svgH = result.H;
@@ -1270,6 +1499,14 @@ async function init() {
     }
   });
 }
+
+window.toggleMobileNav = function() {
+  const nav = document.getElementById('nav-sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  const isOpen = nav.classList.contains('mobile-open');
+  nav.classList.toggle('mobile-open', !isOpen);
+  overlay.classList.toggle('show', !isOpen);
+};
 
 function setupLiveReload() {
   if (!window.EventSource) return;

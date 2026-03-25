@@ -11,6 +11,8 @@ export const FIELD_FILES: Record<Field, string> = {
   note: 'note.md',
 };
 
+export type NodeKind = 'perspective' | 'nested-class';
+
 export interface ClassMeta {
   created: string;
   updated: string;
@@ -19,6 +21,10 @@ export interface ClassMeta {
   git_commit?: string;
   git_branch?: string;
   prev_diagram?: string;
+  kind?: NodeKind;
+  title?: string;
+  children?: string[];
+  parentPath?: string[];
 }
 
 export interface ClassData {
@@ -36,6 +42,7 @@ export interface ClassData {
 export interface OmmConfig {
   version: string;
   theme?: string;
+  language?: string;
 }
 
 export interface DiffResult {

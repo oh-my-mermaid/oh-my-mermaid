@@ -7,6 +7,8 @@
 
 > `omm setup` → `/omm-scan` → done. Your architecture docs write themselves.
 
+<video src="https://github.com/user-attachments/assets/2de6c496-b9a6-4734-8059-282ab130c1bc" width="100%" autoplay loop muted playsinline></video>
+
 ![omm viewer screenshot](./docs/screenshot.png)
 
 ## Why?

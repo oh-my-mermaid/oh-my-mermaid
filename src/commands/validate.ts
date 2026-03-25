@@ -33,7 +33,7 @@ export function commandValidate(className?: string): void {
 
   if (className) {
     if (!classExists(className)) {
-      process.stderr.write(`error: class '${className}' not found\n`);
+      process.stderr.write(`error: element '${className}' not found\n`);
       process.exit(1);
     }
     const { errors } = validateClass(className, allClasses);

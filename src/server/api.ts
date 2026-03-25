@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { listClasses, showClass, readMeta, readField } from '../lib/store.js';
+import { listClasses, showClass, readMeta, readField, listNodes, showNode } from '../lib/store.js';
 import { diffMermaid } from '../lib/diff.js';
 import { getIncomingRefs, getOutgoingRefs } from '../lib/refs.js';
 
@@ -53,6 +53,38 @@ export function handleApi(req: IncomingMessage, res: ServerResponse): boolean {
     const incoming = getIncomingRefs(className);
     const outgoing = getOutgoingRefs(className);
     json(res, { incoming, outgoing });
+    return true;
+  }
+
+  // GET /api/class/:perspective/nodes
+  const nodesMatch = path.match(/^\/api\/class\/([^/]+)\/nodes$/);
+  if (nodesMatch) {
+    const children = listNodes(nodesMatch[1]);
+    json(res, { perspective: nodesMatch[1], children });
+    return true;
+  }
+
+  // GET /api/class/:perspective/node/:path+
+  const nodeMatch = path.match(/^\/api\/class\/([^/]+)\/node\/(.+)$/);
+  if (nodeMatch) {
+    const perspective = nodeMatch[1];
+    const nodePath = nodeMatch[2].split('/');
+    const lastSegment = nodePath[nodePath.length - 1];
+
+    if (lastSegment === 'nodes') {
+      const parentPath = nodePath.slice(0, -1);
+      const children = listNodes(perspective, parentPath);
+      json(res, { perspective, path: parentPath, children });
+      return true;
+    }
+
+    const data = showNode(perspective, nodePath);
+    if (!data) {
+      json(res, { error: 'node not found' }, 404);
+    } else {
+      const children = listNodes(perspective, nodePath);
+      json(res, { ...data, children });
+    }
     return true;
   }
 
