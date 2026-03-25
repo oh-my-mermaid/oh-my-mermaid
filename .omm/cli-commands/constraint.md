@@ -1,3 +1,0 @@
-- Class-field pattern (`omm <class> <field>`) requires at least 2 args; first arg must NOT be a global command keyword
-- Valid fields: description, diagram, constraint, concern, context, todo, note (enforced by `VALID_FIELDS` in types.ts)
-- When field is `-`, content is read from stdin — critical for multi-line heredoc writes from Claude

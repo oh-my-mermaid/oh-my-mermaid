@@ -1,0 +1,1 @@
+Path safety module for cloud pull operations. resolvePullDestination() validates file paths received from the cloud API, rejecting path traversal attacks (../, absolute paths, escapes outside .omm/). Ensures all pulled files land within the .omm/ directory.

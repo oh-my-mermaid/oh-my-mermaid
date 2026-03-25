@@ -1,0 +1,9 @@
+created: 2026-03-25T12:27:03.301Z
+updated: 2026-03-25T12:27:03.302Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: platform-interface
+children: []
+parentPath:
+  - platforms

@@ -278,8 +278,7 @@ body.light .reg-node:hover .nshape { stroke: #000 !important; }
     width: 36px; height: 4px;
     background: #444; border-radius: 2px;
   }
-  .hud { right: 8px; top: 8px; }
-  .hud .hbtn { width: 28px; height: 28px; font-size: 12px; }
+  .float-controls { display: none; }
 }
 </style>
 </head>
@@ -1010,6 +1009,41 @@ window.addEventListener('mousemove', e => {
 window.addEventListener('mouseup', () => {
   if (panning) { panning = false; updateCursor(); }
 });
+
+// Touch: pan + pinch zoom
+(function() {
+  var touchStart = null, touchDist = null, touchScale = null;
+  canvasWrap.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, vpX: vpX, vpY: vpY };
+    } else if (e.touches.length === 2) {
+      touchStart = null;
+      var dx = e.touches[1].clientX - e.touches[0].clientX;
+      var dy = e.touches[1].clientY - e.touches[0].clientY;
+      touchDist = Math.hypot(dx, dy);
+      touchScale = vpScale;
+    }
+  }, { passive: true });
+  canvasWrap.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 1 && touchStart) {
+      e.preventDefault();
+      vpX = touchStart.vpX + (e.touches[0].clientX - touchStart.x);
+      vpY = touchStart.vpY + (e.touches[0].clientY - touchStart.y);
+      applyTransform();
+    } else if (e.touches.length === 2 && touchDist) {
+      e.preventDefault();
+      var dx = e.touches[1].clientX - e.touches[0].clientX;
+      var dy = e.touches[1].clientY - e.touches[0].clientY;
+      var newDist = Math.hypot(dx, dy);
+      var scale = touchScale * (newDist / touchDist);
+      vpScale = Math.min(10, Math.max(0.05, scale));
+      applyTransform();
+    }
+  }, { passive: false });
+  canvasWrap.addEventListener('touchend', function() {
+    touchStart = null; touchDist = null; touchScale = null;
+  });
+})();
 
 // close sidebar when clicking empty canvas area
 canvasWrap.addEventListener('click', e => {

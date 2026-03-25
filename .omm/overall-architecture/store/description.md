@@ -1,0 +1,1 @@
+Filesystem-based storage engine for .omm/ architecture docs. Manages the .omm/ directory, class subdirectories, and field files. Provides CRUD operations: initOmm, listClasses, classExists, readField, writeField, showClass, deleteClass. Auto-creates .omm/ on write operations (lazy-init). When writing a diagram field, saves the previous version to meta for diffing.

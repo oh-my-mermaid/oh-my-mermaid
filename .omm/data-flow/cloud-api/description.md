@@ -1,0 +1,1 @@
+External ohmymermaid.com REST API. Receives pushed files via POST /api/push and serves them back via GET /api/pull. Requires Bearer token authentication from ~/.omm/credentials.json. API URL defaults to https://ohmymermaid.com.

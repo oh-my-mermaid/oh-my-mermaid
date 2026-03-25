@@ -1,0 +1,1 @@
+Analytical commands that inspect diagram content. `diff` compares the current diagram against the previously saved version using the diff engine. `refs` traces cross-references between classes via @mentions in diagrams. `validate` checks diagrams for syntax errors, convention violations, and structural warnings.

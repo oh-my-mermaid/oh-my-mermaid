@@ -1,0 +1,1 @@
+Lightweight Mermaid diagram parser and diff engine. parseMermaid() extracts node IDs and edges from diagram text using regex-based pattern matching. diffMermaid() compares two diagram versions and returns added/removed nodes and edges. formatDiff() renders the diff as human-readable text.

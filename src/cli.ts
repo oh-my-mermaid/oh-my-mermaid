@@ -184,7 +184,7 @@ async function main(): Promise<void> {
       return;
 
     case 'link':
-      commandLink(args[1]);
+      await commandLink(args[1]);
       return;
 
     case 'push':

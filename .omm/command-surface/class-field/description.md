@@ -1,0 +1,1 @@
+Fallback handler for `omm <class> <field> [content]`. Without content: reads the field to stdout. With content or `-` (stdin): writes the field to .omm/<class>/<field-file>. Supports all 7 fields: description, diagram, constraint, concern, context, todo, note.

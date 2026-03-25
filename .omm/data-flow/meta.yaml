@@ -1,0 +1,18 @@
+created: 2026-03-25T12:30:49.487Z
+updated: 2026-03-25T12:30:57.358Z
+update_count: 2
+last_field: description
+git_commit: 2fb887a
+git_branch: main
+children:
+  - ai-assistant
+  - cli-input
+  - cloud-api
+  - credentials
+  - diff-engine
+  - meta-tracker
+  - omm-dir
+  - ref-tracker
+  - store
+  - validator
+  - web-viewer

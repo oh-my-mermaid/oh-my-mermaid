@@ -1,0 +1,1 @@
+Validates Mermaid diagram syntax and conventions. Checks graph declaration, bracket balance, edge labels, classDef names/colors, self-references, and node count. Optional class argument; validates all if omitted.

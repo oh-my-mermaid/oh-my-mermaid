@@ -1,0 +1,1 @@
+CLI entry point (src/cli.ts). Parses process.argv, matches the first argument against known command names, and dispatches to the corresponding handler. Falls through to class-field handler for unknown commands with 2+ args. Prints help on no args or --help.

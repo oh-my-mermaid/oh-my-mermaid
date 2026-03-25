@@ -1,0 +1,22 @@
+graph LR
+    platform-registry["Platform Registry\nsrc/lib/platforms/index.ts"]
+    platform-interface["Platform Interface\nsrc/lib/platforms/types.ts"]
+    claude-platform["Claude Code\nsrc/lib/platforms/claude.ts"]
+    codex-platform["Codex\nsrc/lib/platforms/codex.ts"]
+    cursor-platform["Cursor\nsrc/lib/platforms/cursor.ts"]
+    openclaw-platform["OpenClaw\nsrc/lib/platforms/openclaw.ts"]
+    antigravity-platform["Antigravity\nsrc/lib/platforms/antigravity.ts"]
+
+    platform-registry -->|"aggregates"| claude-platform
+    platform-registry -->|"aggregates"| codex-platform
+    platform-registry -->|"aggregates"| cursor-platform
+    platform-registry -->|"aggregates"| openclaw-platform
+    platform-registry -->|"aggregates"| antigravity-platform
+    claude-platform -->|"implements"| platform-interface
+    codex-platform -->|"implements"| platform-interface
+    cursor-platform -->|"implements"| platform-interface
+    openclaw-platform -->|"implements"| platform-interface
+    antigravity-platform -->|"implements"| platform-interface
+
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    class claude-platform,codex-platform,cursor-platform,openclaw-platform,antigravity-platform external

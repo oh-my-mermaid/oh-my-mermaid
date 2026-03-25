@@ -1,0 +1,1 @@
+Central data engine. On write: ensures .omm/ exists (lazy-init), creates class directory, writes the field file, saves previous diagram to meta if overwriting, and triggers meta update. On read: reads field files from the class directory and returns content or null.

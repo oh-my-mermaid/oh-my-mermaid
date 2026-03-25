@@ -1,0 +1,1 @@
+Metadata tracker that maintains meta.yaml per class. Records created/updated timestamps, update count, last-modified field, and git info (commit SHA and branch name). Automatically called by store.writeField() on every write.

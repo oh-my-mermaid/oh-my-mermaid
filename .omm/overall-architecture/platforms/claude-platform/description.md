@@ -1,0 +1,1 @@
+Claude Code platform adapter. Detects via `which claude`. Registers by installing the oh-my-mermaid plugin via `claude plugin install`. Handles version-aware upgrades by comparing installed vs package version, uninstalling old before installing new.

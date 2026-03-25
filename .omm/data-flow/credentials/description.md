@@ -1,0 +1,1 @@
+Credential store at ~/.omm/credentials.json (file mode 0o600). Holds token (Bearer auth), handle (user identity), and default_org (active organization). Read by the cloud client for API authentication on push/pull/org operations.

@@ -1,0 +1,15 @@
+created: 2026-03-25T12:26:40.942Z
+updated: 2026-03-25T12:26:48.074Z
+update_count: 2
+last_field: diagram
+kind: nested-class
+title: platforms
+children:
+  - antigravity-platform
+  - claude-platform
+  - codex-platform
+  - cursor-platform
+  - openclaw-platform
+  - platform-interface
+  - platform-registry
+parentPath: []

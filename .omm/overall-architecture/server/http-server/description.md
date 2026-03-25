@@ -1,0 +1,1 @@
+Node.js HTTP server (no framework). Routes requests to three handlers: `/api/*` to the API handler, `/events` to SSE watcher, and `/` to the viewer HTML. Injects the project name into the HTML via a script tag. Auto-retries on EADDRINUSE by incrementing the port.

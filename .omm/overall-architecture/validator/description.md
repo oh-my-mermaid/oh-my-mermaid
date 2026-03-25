@@ -1,0 +1,1 @@
+Diagram validation engine with rule-based checks. Validates: graph declaration presence, bracket balance (quote-aware), edge labels, classDef names and colors against the approved palette, self-references, missing cross-references, and node count (warns if <3 or >15). Returns structured ValidationResult with error/warning levels and rule names.

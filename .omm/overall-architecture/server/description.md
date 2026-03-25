@@ -1,0 +1,1 @@
+Built-in HTTP web viewer for browsing architecture diagrams locally. Serves a single-page HTML viewer at localhost, provides a JSON REST API for reading classes/diffs/refs, and uses Server-Sent Events (SSE) to push live-reload notifications when .omm/ files change. Auto-increments port if the default (3000) is in use.
