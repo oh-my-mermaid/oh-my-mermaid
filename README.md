@@ -3,7 +3,7 @@
 <p align="center">
   <img src="./docs/logo.jpg" alt="omm logo" width="80"/>
   <br/>
-  <br/><strong>Oh-my-mermaid</strong>
+  <br/><b><font size="6">Oh-my-mermaid</font></b>
 </p>
 
 <p align="center">
