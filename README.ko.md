@@ -1,4 +1,4 @@
-[English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [中文](./README.zh.md)
+[English](./README.md) | [Türkçe](./README.tr.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [中文](./README.zh.md)
 
 > 이 문서는 영어 README를 번역한 것입니다. 일부 표현이 부자연스러울 수 있습니다.
 
