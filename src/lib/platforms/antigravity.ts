@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { execSync } from 'node:child_process';
 import type { Platform } from './types.js';
-import { getSkillsSource } from './utils.js';
+import { getSkillsSource, hasCommand } from './utils.js';
 
 const SKILLS_TARGET = path.join(os.homedir(), '.gemini', 'antigravity', 'skills', 'oh-my-mermaid');
 
@@ -12,12 +11,7 @@ export const antigravity: Platform = {
   id: 'antigravity',
 
   detect(): boolean {
-    try {
-      execSync('which antigravity', { stdio: 'ignore' });
-      return true;
-    } catch {
-      return false;
-    }
+    return hasCommand('antigravity');
   },
 
   isSetup(): boolean {

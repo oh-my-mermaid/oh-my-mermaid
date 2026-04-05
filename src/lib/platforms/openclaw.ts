@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { execSync } from 'node:child_process';
 import type { Platform } from './types.js';
-import { getSkillsSource } from './utils.js';
+import { getSkillsSource, hasCommand } from './utils.js';
 
 const SKILLS_TARGET = path.join(os.homedir(), '.openclaw', 'skills', 'oh-my-mermaid');
 
@@ -12,12 +11,7 @@ export const openclaw: Platform = {
   id: 'openclaw',
 
   detect(): boolean {
-    try {
-      execSync('which openclaw', { stdio: 'ignore' });
-      return true;
-    } catch {
-      return false;
-    }
+    return hasCommand('openclaw');
   },
 
   isSetup(): boolean {

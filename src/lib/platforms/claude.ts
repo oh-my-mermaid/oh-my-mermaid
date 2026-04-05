@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import type { Platform } from './types.js';
-import { getPackageVersion } from './utils.js';
+import { getPackageVersion, hasCommand } from './utils.js';
 
 function run(cmd: string): { ok: boolean; out: string } {
   try {
@@ -34,7 +34,7 @@ export const claude: Platform = {
   id: 'claude',
 
   detect(): boolean {
-    return run('which claude').ok;
+    return hasCommand('claude');
   },
 
   isSetup(): boolean {
