@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -44,6 +45,20 @@ export function getAgentsSource(): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Cross-platform check whether a binary is available on PATH.
+ * Uses `where` on Windows, `which` on Unix/macOS.
+ */
+export function hasCommand(bin: string): boolean {
+  const cmd = process.platform === 'win32' ? `where ${bin}` : `which ${bin}`;
+  try {
+    execSync(cmd, { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
