@@ -116,6 +116,7 @@ omm login && omm link && omm push
 | Cursor | `omm setup cursor` |
 | OpenClaw | `omm setup openclaw` |
 | Antigravity | `omm setup antigravity` |
+| Hermes | `omm setup hermes` |
 
 运行 `omm setup` 自动检测并配置所有已安装的工具。
 

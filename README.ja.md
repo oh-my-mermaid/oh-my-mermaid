@@ -116,6 +116,7 @@ omm login && omm link && omm push
 | Cursor | `omm setup cursor` |
 | OpenClaw | `omm setup openclaw` |
 | Antigravity | `omm setup antigravity` |
+| Hermes | `omm setup hermes` |
 
 `omm setup`を実行すると、インストール済みのすべてのツールを自動検出して設定します。
 

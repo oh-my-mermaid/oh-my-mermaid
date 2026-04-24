@@ -3,6 +3,16 @@ name: omm-push
 description: Push architecture docs to oh-my-mermaid cloud. Handles login, link, and push workflow with error guidance. Use when the user says "omm push", "push to cloud", "deploy architecture", or "share architecture".
 ---
 
+## Platform-Specific Tool Names
+
+Tool names vary by platform. The workflow and logic below are identical — only the tool identifiers change.
+
+| Action | Claude Code / Codex / OpenClaw | Hermes |
+| --- | --- | --- |
+| Run commands | Bash | `terminal` |
+
+When running under Hermes, substitute `terminal` anywhere "Bash" is referenced.
+
 # omm-push — Cloud Push Workflow
 
 ## Purpose

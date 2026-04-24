@@ -114,6 +114,7 @@ It's private by default. Share with your team, or make it public like [this exam
 | Cursor | `omm setup cursor` |
 | OpenClaw | `omm setup openclaw` |
 | Antigravity | `omm setup antigravity` |
+| Hermes | `omm setup hermes` |
 
 Run `omm setup` to auto-detect and configure all installed tools.
 

@@ -4,6 +4,16 @@ description: Start the omm web viewer to explore architecture diagrams in the br
 argument-hint: "[--port <port>]"
 ---
 
+## Platform-Specific Tool Names
+
+Tool names vary by platform. The workflow and logic below are identical — only the tool identifiers change.
+
+| Action | Claude Code / Codex / OpenClaw | Hermes |
+| --- | --- | --- |
+| Run commands | Bash | `terminal` |
+
+When running under Hermes, substitute `terminal` anywhere "Bash" is referenced.
+
 # omm-view — Architecture Viewer
 
 ## Purpose

@@ -1,5 +1,10 @@
 # Roadmap
 
+## Recently Shipped
+
+### Hermes Agent support
+Integrated with [Hermes Agent](https://github.com/NousResearch/hermes-agent) — `omm setup hermes` symlinks the skills directory into `~/.hermes/skills/oh-my-mermaid`, making the omm skills discoverable by any Hermes profile.
+
 ## Planned
 
 ### Sub-agent scan pipeline

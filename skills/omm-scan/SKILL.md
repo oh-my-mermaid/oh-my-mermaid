@@ -3,6 +3,19 @@ name: omm-scan
 description: Scan codebase architecture and generate/update .omm/ documentation. Use when the user says "omm scan", "scan architecture", "update architecture", "refresh diagrams".
 ---
 
+## Platform-Specific Tool Names
+
+Tool names vary by platform. The workflow and logic below are identical — only the tool identifiers change.
+
+| Action | Claude Code / Codex / OpenClaw | Hermes |
+| --- | --- | --- |
+| Explore files | Glob | `search_files` (target=files) |
+| Read files | Read | `read_file` |
+| Search content | Grep | `search_files` (target=content) |
+| Run commands | Bash | `terminal` |
+
+When running under Hermes, substitute the tool names accordingly.
+
 # omm-scan — Perspective-Based Architecture Scanner
 
 ## Purpose
